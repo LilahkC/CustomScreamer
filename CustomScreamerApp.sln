@@ -1,6 +1,6 @@
 ﻿
 Microsoft Visual Studio Solution File, Format Version 12.00
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "AUSECOURS", "AUSECOURS\AUSECOURS.csproj", "{6F71BBC7-2C3D-44ED-A93D-78AB21771E1D}"
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "CustomScreamer", "CustomScreamer\CustomScreamer.csproj", "{6F71BBC7-2C3D-44ED-A93D-78AB21771E1D}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution

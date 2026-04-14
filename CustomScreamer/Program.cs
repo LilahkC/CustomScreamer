@@ -2,7 +2,7 @@
 using System.Runtime.InteropServices;
 using SDL3;
 
-namespace AUSECOURS;
+namespace CustomScreamer;
 
 internal static class Program
 {
