@@ -24,11 +24,10 @@ internal static class Program
     static int[] frameDelays;
     
     //SOUND
-    private static float volume = 0.25f;
-    private static float chance = 0.15f;
+    private static float volume = 0.45f;
+    private static float chance = 0.5f;
     private static float time = 1f;
 
-    //TODO pourquoi je dois mettre le chemin absolu ?
     static string mp3Path;
     static string gifPath;
 
@@ -52,13 +51,13 @@ internal static class Program
 
     private static void InitializePaths()
     {
-        string baseDir = AppDomain.CurrentDomain.BaseDirectory;
+        string baseDir = "ListOfScreamers\\Foxy";
 
         gifPath = Directory.GetFiles(baseDir, "*.gif").FirstOrDefault();
 
         mp3Path = Directory.GetFiles(baseDir, "*.*")
             .FirstOrDefault(f => f.EndsWith(".mp3"));
-
+        
         // Petite vérification de sécurité
         if (string.IsNullOrEmpty(gifPath) || string.IsNullOrEmpty(mp3Path))
         {
@@ -86,7 +85,7 @@ internal static class Program
             return false;
 
         sw.Restart();
-        return System.Random.Shared.NextSingle() < chance;
+        return System.Random.Shared.NextSingle() < chance / 100;
     }
 
     private static void PlaySound()
@@ -116,7 +115,8 @@ internal static class Program
     private static void LoadGif(nint renderer)
     {
         nint gifAnimPtr = Image.LoadAnimation(gifPath);
-        if (gifAnimPtr == nint.Zero) {
+        if (gifAnimPtr == nint.Zero)
+        {
             Console.WriteLine($"Erreur GIF: {SDL.GetError()}");
             return;
         }
@@ -208,9 +208,9 @@ internal static class Program
             return;
         }
 
-        const SDL.WindowFlags Flags = SDL.WindowFlags.AlwaysOnTop | SDL.WindowFlags.NotFocusable | SDL.WindowFlags.Fullscreen | SDL.WindowFlags.Transparent;
+        const SDL.WindowFlags Flags = SDL.WindowFlags.AlwaysOnTop | SDL.WindowFlags.NotFocusable | SDL.WindowFlags.Fullscreen | SDL.WindowFlags.Transparent | SDL.WindowFlags.Hidden;
 
-        if (!SDL.CreateWindowAndRenderer("SDL3 Create Window", 800, 600, Flags, out window, out renderer))
+        if (!SDL.CreateWindowAndRenderer("SDL3 Create Window", 0, 0, Flags, out window, out renderer))
         {
             SDL.LogError(SDL.LogCategory.Application, $"Error creating window and rendering: {SDL.GetError()}");
             return;
@@ -236,6 +236,8 @@ internal static class Program
         SDL.SetTrayEntryCallback(trayQuit, callback_quit, nint.Zero);
         
         LoadGif(renderer);
+
+        SDL.ShowWindow(window);
         
         while (loop)
         {

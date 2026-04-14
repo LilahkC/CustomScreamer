@@ -1,0 +1,8 @@
+{
+  "profiles": {
+    "AUSECOURS": {
+      "commandName": "Project",
+      "workingDirectory": "$(ProjectDir)"
+    }
+  }
+}
