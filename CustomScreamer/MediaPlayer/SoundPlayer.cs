@@ -40,13 +40,13 @@ public class SoundPlayer
     
     public void InitializePath()
     {
-        const string BaseDir = "ListOfScreamers\\Foxy";
+        string baseDir = Path.Combine("ListOfScreamers", "Foxy");
 
-        mp3Path = Directory.GetFiles(BaseDir, "*.*").FirstOrDefault(f => f.EndsWith(".mp3"))!;
+        mp3Path = Directory.GetFiles(baseDir, "*.*").FirstOrDefault(f => f.EndsWith(".mp3"))!;
 
         if (string.IsNullOrEmpty(mp3Path))
         {
-            Console.WriteLine("MP3 file not found in the directory : " + BaseDir);
+            Console.WriteLine("MP3 file not found in the directory : " + baseDir);
             Mixer.DestroyMixer(mixer);
             Mixer.Quit();
             SDL.Quit();

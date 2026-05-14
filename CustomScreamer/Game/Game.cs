@@ -25,9 +25,7 @@ public class Game
     public void Update()
     {
         if (utils.Random(Chance, Time))
-        {
             PlayScreamer();
-        }
     }
     
     public void Quit()

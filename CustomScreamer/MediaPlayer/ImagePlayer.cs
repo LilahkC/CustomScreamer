@@ -1,35 +1,35 @@
-﻿using CustomScreamer.Renderer;
-using SDL3;
-
-namespace CustomScreamer.MediaPlayer;
+﻿namespace CustomScreamer.MediaPlayer;
 
 public class ImagePlayer
 {
     private string imagePath = "";
-    private readonly nint texture = nint.Zero;
+    private nint texture = nint.Zero;
+    //private readonly Window window = new();
 
     public void InitializePath()
     {
-        const string BaseDir = "ListOfScreamers\\Foxy";
+        string baseDir = Path.Combine("ListOfScreamers", "Foxy");
 
-        imagePath = Directory.GetFiles(BaseDir, "*.*").FirstOrDefault(f => f.EndsWith(".jpg") || f.EndsWith(".png") || f.EndsWith(".jpeg"))!;
+        imagePath = Directory.GetFiles(baseDir, "*.*").FirstOrDefault(f => f.EndsWith(".jpg") || f.EndsWith(".png") || f.EndsWith(".jpeg"))!;
 
         if (!string.IsNullOrEmpty(imagePath))
             return;
         
-        Console.WriteLine(".jpg, .png or .jpeg file not found in the directory : " + BaseDir);
+        Console.WriteLine(".jpg, .png or .jpeg file not found in the directory : " + baseDir);
     }
 
     public void Initialize()
     {
         InitializePath();
+        
+        //texture = Image.LoadTexture(Window.Renderer, imagePath);
+        //
+        //if (texture == nint.Zero)
+        //    Console.WriteLine("Could not load image: " + imagePath);
     }
 
     public void ShowImage()
-    {
-       // Image.LoadTexture(window.Renderer, imagePath);
-       // 
-       // if (texture == nint.Zero)
-       //     Console.WriteLine("Could not load image: " + imagePath);
+    { 
+        
     }
 }

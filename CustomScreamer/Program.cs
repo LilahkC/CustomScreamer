@@ -12,16 +12,10 @@ internal static class Program
         Window.Initialize();
         Game.Initialize();
         
-        Window.SetShowWindow(true);
-        
         while (Window.Loop)
         {
             Game.Update();
-            
-            Window.PoolEvents();
-
-            Window.ClearRenderer();
-            Window.RenderPresent();
+            Window.Update();
         }
 
         Quit();
