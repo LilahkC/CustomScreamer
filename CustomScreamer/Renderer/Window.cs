@@ -27,9 +27,11 @@ public class Window
         SetWindowLong(hwnd, GWL_EXSTYLE, style | WS_EX_LAYERED | WS_EX_TRANSPARENT);
     }
     // ──────────────────────────────────Merci Claude──────────────────────────────────────
-
+    
     public void Initialize()
     {
+        SDL.SetHint("SDL_MOUSE_FOCUS_CLICKTHROUGH", "1");
+        
         if (!SDL.Init(SDL.InitFlags.Video | SDL.InitFlags.Audio))
         {
             SDL.LogError(SDL.LogCategory.System, $"SDL could not initialize: {SDL.GetError()}");
@@ -58,8 +60,13 @@ public class Window
             else
                 SDL.LogError(SDL.LogCategory.Application, "Cannot get the HWND (Windows only).");
         }
-        
+        else if (RuntimeInformation.IsOSPlatform(OSPlatform.Linux))
+        {
+            SDL.SetWindowFocusable(window, false);
+            SDL.SetWindowKeyboardGrab(window, false);
+        }
         SetShowWindow(true);
+        SDL.SetWindowAlwaysOnTop(window, true);
         trayMenu.CreateTray();
     }
 
