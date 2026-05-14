@@ -30,7 +30,8 @@ public class Window
     
     public void Initialize()
     {
-        SDL.SetHint("SDL_MOUSE_FOCUS_CLICKTHROUGH", "1");
+        if (RuntimeInformation.IsOSPlatform(OSPlatform.Linux))
+            SDL.SetHint("SDL_MOUSE_FOCUS_CLICKTHROUGH", "1");
         
         if (!SDL.Init(SDL.InitFlags.Video | SDL.InitFlags.Audio))
         {
