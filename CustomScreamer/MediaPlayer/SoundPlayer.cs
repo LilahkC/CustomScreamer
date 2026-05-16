@@ -27,20 +27,9 @@ public class SoundPlayer
         return false;
     }
     
-    public void Initialize()
-    {
-        if (!InitializeMixer())
-            return;
-        
-        if (!InitializeMixerDevice())
-            return;
-        
-        InitializePath();
-    }
-    
     public void InitializePath()
     {
-        string baseDir = Path.Combine("ListOfScreamers", "Foxy");
+        string baseDir = Path.Combine("ListOfScreamers", "Screamer");
 
         mp3Path = Directory.GetFiles(baseDir, "*.*").FirstOrDefault(f => f.EndsWith(".mp3"))!;
 
@@ -51,6 +40,17 @@ public class SoundPlayer
             Mixer.Quit();
             SDL.Quit();
         }
+    }
+    
+    public void Initialize()
+    {
+        if (!InitializeMixer())
+            return;
+        
+        if (!InitializeMixerDevice())
+            return;
+        
+        InitializePath();
     }
     
     public void PlaySound()

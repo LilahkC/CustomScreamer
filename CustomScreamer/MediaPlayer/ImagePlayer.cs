@@ -1,14 +1,17 @@
-﻿namespace CustomScreamer.MediaPlayer;
+﻿using CustomScreamer.Renderer;
+using SDL3;
+
+namespace CustomScreamer.MediaPlayer;
 
 public class ImagePlayer
 {
     private string imagePath = "";
-    private nint texture = nint.Zero;
-    //private readonly Window window = new();
+    public uint TimeToShowImage = 500;
+    Window window;
 
     public void InitializePath()
     {
-        string baseDir = Path.Combine("ListOfScreamers", "Foxy");
+        string baseDir = Path.Combine("ListOfScreamers", "Screamer");
 
         imagePath = Directory.GetFiles(baseDir, "*.*").FirstOrDefault(f => f.EndsWith(".jpg") || f.EndsWith(".png") || f.EndsWith(".jpeg"))!;
 
@@ -18,18 +21,34 @@ public class ImagePlayer
         Console.WriteLine(".jpg, .png or .jpeg file not found in the directory : " + baseDir);
     }
 
-    public void Initialize()
+    public void Initialize(Window Window)
     {
+        window = Window;
         InitializePath();
-        
-        //texture = Image.LoadTexture(Window.Renderer, imagePath);
-        //
-        //if (texture == nint.Zero)
-        //    Console.WriteLine("Could not load image: " + imagePath);
+        window.Texture = Image.LoadTexture(window.Renderer, imagePath);
     }
 
     public void ShowImage()
-    { 
+    {
+        SDL.ShowWindow(window.GetWindow());
+
+        if (window.Texture == nint.Zero)
+        {
+            Console.WriteLine("Could not load image: " + imagePath);
+            return;
+        }
+        Console.WriteLine("Loaded Texture with image : " + imagePath);
+        SDL.RenderTexture(window.Renderer, window.Texture, nint.Zero, nint.Zero);
+        window.RenderPresent();
         
+        SDL.Delay(TimeToShowImage);
+        
+        window.ClearRenderer();
+        SDL.HideWindow(window.GetWindow());
+    }
+    
+    public void Quit()
+    {
+        SDL.DestroyTexture(window.Texture);
     }
 }

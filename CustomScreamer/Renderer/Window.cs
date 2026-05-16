@@ -9,6 +9,7 @@ public class Window
     private nint window;
     public bool Loop = true;
     private readonly TrayMenu trayMenu = new();
+    public nint Texture;
     
     // ── Win32 P/Invoke ──────────────────────────────────────────────────────
     const int GWL_EXSTYLE = -20;
@@ -39,7 +40,7 @@ public class Window
             return;
         }
         
-        const SDL.WindowFlags Flags = SDL.WindowFlags.AlwaysOnTop | SDL.WindowFlags.NotFocusable | SDL.WindowFlags.Fullscreen | SDL.WindowFlags.Transparent | SDL.WindowFlags.Hidden;
+        const SDL.WindowFlags Flags = SDL.WindowFlags.AlwaysOnTop | SDL.WindowFlags.NotFocusable | SDL.WindowFlags.Fullscreen | SDL.WindowFlags.Hidden;
         
         if (!SDL.CreateWindowAndRenderer("CustomScreamer", 0, 0, Flags, out window, out Renderer))
         {
@@ -63,19 +64,16 @@ public class Window
         }
         else if (RuntimeInformation.IsOSPlatform(OSPlatform.Linux))
         {
-            SDL.SetWindowFocusable(window, false);
-            SDL.SetWindowKeyboardGrab(window, false);
+            //TODO Linux click-through (wayland or x11)
         }
-        SetShowWindow(true);
-        SDL.SetWindowAlwaysOnTop(window, true);
+        
+        SetShowWindow(false);
         trayMenu.CreateTray();
     }
 
     public void Update()
     {
         PoolEvents();
-        ClearRenderer();
-        RenderPresent();
     }
     
     public void Quit()
@@ -113,5 +111,10 @@ public class Window
                 Loop = false;
             }
         }
+    }
+
+    public nint GetWindow()
+    {
+        return window;
     }
 }

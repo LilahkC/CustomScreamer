@@ -1,17 +1,18 @@
 ﻿using CustomScreamer.Renderer;
+using SDL3;
 
 namespace CustomScreamer;
 
 internal static class Program
 {
     private static readonly Window Window = new();
-    private static readonly Game.Game Game = new();
+    private static readonly Game.Game Game = new(Window);
 
     private static void Main()
     {
         Window.Initialize();
         Game.Initialize();
-        
+
         while (Window.Loop)
         {
             Game.Update();

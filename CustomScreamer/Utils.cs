@@ -1,4 +1,5 @@
 ﻿using System.Diagnostics;
+using SDL3;
 
 namespace CustomScreamer;
 
@@ -8,13 +9,17 @@ public class Utils
     
     public bool Random(float chance, float time)
     {
-        if (!stopWatch.IsRunning)
-            stopWatch = Stopwatch.StartNew();
+        bool isCooking = true;
+        int count = 0;
+        while (isCooking)
+        {
+            if (System.Random.Shared.NextSingle() < chance / 100)
+                isCooking = false;
+            else
+                count++;
+        }
 
-        if (!(stopWatch.Elapsed.Seconds >= time))
-            return false;
-
-        stopWatch.Restart();
-        return System.Random.Shared.NextSingle() < chance / 100;
+        SDL.Delay((uint)(count * time) * 1000);
+        return true;
     }
 }
