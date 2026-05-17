@@ -60,7 +60,7 @@ public class Window
             if (hwnd != nint.Zero)
                 EnableClickThrough(hwnd);
             else
-                SDL.LogError(SDL.LogCategory.Application, "Cannot get the HWND (Windows only).");
+                SDL.LogError(SDL.LogCategory.Application, "Cannot get the HWND.");
         }
         else if (RuntimeInformation.IsOSPlatform(OSPlatform.Linux))
         {

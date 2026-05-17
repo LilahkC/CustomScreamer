@@ -9,17 +9,13 @@ public class Utils
     
     public bool Random(float chance, float time)
     {
-        bool isCooking = true;
-        int count = 0;
-        while (isCooking)
-        {
-            if (System.Random.Shared.NextSingle() < chance / 100)
-                isCooking = false;
-            else
-                count++;
-        }
+        if (!stopWatch.IsRunning)
+            stopWatch = Stopwatch.StartNew();
 
-        SDL.Delay((uint)(count * time) * 1000);
-        return true;
+        if (stopWatch.Elapsed.Seconds < time)
+            return false;
+
+        stopWatch.Restart();
+        return System.Random.Shared.NextSingle() < chance / 100;
     }
 }
