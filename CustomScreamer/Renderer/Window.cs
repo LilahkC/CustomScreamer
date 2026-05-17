@@ -1,4 +1,6 @@
-﻿namespace CustomScreamer.Renderer;
+﻿using System.Security;
+
+namespace CustomScreamer.Renderer;
 
 using System.Runtime.InteropServices;
 using SDL3;
@@ -11,36 +13,15 @@ public class Window
     private readonly TrayMenu trayMenu = new();
     public nint Texture;
     
-    // ── Win32 P/Invoke ──────────────────────────────────────────────────────
-    const int GWL_EXSTYLE = -20;
-    const int WS_EX_LAYERED = 0x00080000;
-    const int WS_EX_TRANSPARENT = 0x00000020;
-
-    [DllImport("user32.dll", SetLastError = true)]
-    static extern int GetWindowLong(nint hwnd, int nIndex);
-
-    [DllImport("user32.dll", SetLastError = true)]
-    static extern int SetWindowLong(nint hwnd, int nIndex, int dwNewLong);
-
-    static void EnableClickThrough(nint hwnd)
-    {
-        int style = GetWindowLong(hwnd, GWL_EXSTYLE);
-        SetWindowLong(hwnd, GWL_EXSTYLE, style | WS_EX_LAYERED | WS_EX_TRANSPARENT);
-    }
-    // ──────────────────────────────────Merci Claude──────────────────────────────────────
-    
     public void Initialize()
     {
-        if (RuntimeInformation.IsOSPlatform(OSPlatform.Linux))
-            SDL.SetHintWithPriority("SDL_HINT_VIDEO_DRIVER", "wayland", SDL.HintPriority.Override);
-        
         if (!SDL.Init(SDL.InitFlags.Video | SDL.InitFlags.Audio))
         {
             SDL.LogError(SDL.LogCategory.System, $"SDL could not initialize: {SDL.GetError()}");
             return;
         }
         
-        const SDL.WindowFlags Flags = SDL.WindowFlags.AlwaysOnTop | SDL.WindowFlags.NotFocusable | SDL.WindowFlags.Fullscreen | SDL.WindowFlags.Hidden;
+        const SDL.WindowFlags Flags = SDL.WindowFlags.AlwaysOnTop | SDL.WindowFlags.NotFocusable | SDL.WindowFlags.Fullscreen | SDL.WindowFlags.Hidden | SDL.WindowFlags.OpenGL;
         
         if (!SDL.CreateWindowAndRenderer("CustomScreamer", 0, 0, Flags, out window, out Renderer))
         {
@@ -48,25 +29,11 @@ public class Window
             return;
         }
         
+        SDL.SetWindowHitTest(window, null, nint.Zero);
+        
         SDL.SetRenderDrawColor(Renderer, 0, 0, 0, 0);
         SDL.SetRenderDrawBlendMode(Renderer, SDL.BlendMode.Blend);
-        
-        uint props = SDL.GetWindowProperties(window);
 
-        nint hwnd = nint.Zero;
-        if (RuntimeInformation.IsOSPlatform(OSPlatform.Windows))
-            hwnd = SDL.GetPointerProperty(props, "SDL.window.win32.hwnd", nint.Zero);
-        else if (RuntimeInformation.IsOSPlatform(OSPlatform.Linux))
-            hwnd = SDL.GetPointerProperty(props, "SDL.window.wayland.xdg", nint.Zero);
-            
-        if (hwnd != nint.Zero)
-            EnableClickThrough(hwnd);
-        else
-        {
-            SDL.LogError(SDL.LogCategory.Application, "Cannot get the HWND.");
-            SDL.LogError(SDL.LogCategory.Application, props.ToString());   
-        }
-        
         SetShowWindow(false);
         trayMenu.CreateTray();
     }

@@ -6,7 +6,9 @@ public class SoundPlayer
     private string mp3Path = "";
     private const float Volume = 0.45f;
     private nint mixer;
-
+    private nint audio;
+    private nint track;
+    
     private static bool InitializeMixer()
     {
         if (Mixer.Init())
@@ -19,6 +21,7 @@ public class SoundPlayer
     private bool InitializeMixerDevice()
     {
         mixer = Mixer.CreateMixerDevice(SDL.AudioDeviceDefaultPlayback, nint.Zero);
+        Mixer.SetMixerGain(mixer, Volume);
         
         if (mixer != nint.Zero) 
             return true;
@@ -51,12 +54,7 @@ public class SoundPlayer
             return;
         
         InitializePath();
-    }
-    
-    public void PlaySound()
-    {
-        Mixer.SetMixerGain(mixer, Volume);
-        nint audio = Mixer.LoadAudio(mixer, mp3Path, predecode: true);
+        audio = Mixer.LoadAudio(mixer, mp3Path, predecode: true);
         if (audio == nint.Zero)
         {
             Console.WriteLine($"Failed loading audio: {SDL.GetError()}");
@@ -64,16 +62,16 @@ public class SoundPlayer
             return;
         }
         
-        // Create track and attach loaded audio
-        nint track = Mixer.CreateTrack(mixer);
+        track = Mixer.CreateTrack(mixer);
         if (track == nint.Zero || !Mixer.SetTrackAudio(track, audio))
         {
             Console.WriteLine($"Failed creating track: {SDL.GetError()}");
             Quit();
-            return;
         }
-
-        // Play
+    }
+    
+    public void PlaySound()
+    {
         Mixer.PlayTrack(track, 0);
     }
 

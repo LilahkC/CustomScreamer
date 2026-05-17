@@ -6,7 +6,7 @@ namespace CustomScreamer.MediaPlayer;
 public class ImagePlayer
 {
     private string imagePath = "";
-    public uint TimeToShowImage = 500;
+    public readonly uint TimeToShowImage = 500;
     Window window;
 
     public void InitializePath()
@@ -26,6 +26,10 @@ public class ImagePlayer
         window = Window;
         InitializePath();
         window.Texture = Image.LoadTexture(window.Renderer, imagePath);
+        if(window.Texture != nint.Zero)
+            Console.WriteLine("Loaded Texture with image : " + imagePath);
+        else
+            Console.WriteLine("Could not load image: " + imagePath);
     }
 
     public void ShowImage()
@@ -37,7 +41,6 @@ public class ImagePlayer
             Console.WriteLine("Could not load image: " + imagePath);
             return;
         }
-        Console.WriteLine("Loaded Texture with image : " + imagePath);
         SDL.RenderTexture(window.Renderer, window.Texture, nint.Zero, nint.Zero);
         window.RenderPresent();
         
