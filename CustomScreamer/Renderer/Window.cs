@@ -32,7 +32,7 @@ public class Window
     public void Initialize()
     {
         if (RuntimeInformation.IsOSPlatform(OSPlatform.Linux))
-            SDL.SetHint("SDL_MOUSE_FOCUS_CLICKTHROUGH", "1");
+            SDL.SetHintWithPriority("SDL_HINT_VIDEO_DRIVER", "wayland", SDL.HintPriority.Override);
         
         if (!SDL.Init(SDL.InitFlags.Video | SDL.InitFlags.Audio))
         {
@@ -53,18 +53,18 @@ public class Window
         
         uint props = SDL.GetWindowProperties(window);
 
+        nint hwnd = nint.Zero;
         if (RuntimeInformation.IsOSPlatform(OSPlatform.Windows))
-        {
-            nint hwnd  = SDL.GetPointerProperty(props, "SDL.window.win32.hwnd", nint.Zero);
-            
-            if (hwnd != nint.Zero)
-                EnableClickThrough(hwnd);
-            else
-                SDL.LogError(SDL.LogCategory.Application, "Cannot get the HWND.");
-        }
+            hwnd = SDL.GetPointerProperty(props, "SDL.window.win32.hwnd", nint.Zero);
         else if (RuntimeInformation.IsOSPlatform(OSPlatform.Linux))
+            hwnd = SDL.GetPointerProperty(props, "SDL.window.wayland.xdg", nint.Zero);
+            
+        if (hwnd != nint.Zero)
+            EnableClickThrough(hwnd);
+        else
         {
-            //TODO Linux click-through (wayland or x11)
+            SDL.LogError(SDL.LogCategory.Application, "Cannot get the HWND.");
+            SDL.LogError(SDL.LogCategory.Application, props.ToString());   
         }
         
         SetShowWindow(false);
