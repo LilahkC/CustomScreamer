@@ -1,4 +1,6 @@
-﻿namespace CustomScreamer.Renderer;
+﻿using System.Runtime.InteropServices;
+
+namespace CustomScreamer.Renderer;
 using SDL3;
 
 public class Window
@@ -17,13 +19,19 @@ public class Window
             return;
         }
         
-        const SDL.WindowFlags Flags = SDL.WindowFlags.AlwaysOnTop | SDL.WindowFlags.NotFocusable | SDL.WindowFlags.Borderless 
-                                      | SDL.WindowFlags.Hidden | SDL.WindowFlags.Maximized | SDL.WindowFlags.Vulkan;
+        const SDL.WindowFlags Flags = SDL.WindowFlags.AlwaysOnTop | SDL.WindowFlags.NotFocusable | SDL.WindowFlags.Fullscreen | 
+                                      SDL.WindowFlags.Hidden;
         
-        if (!SDL.CreateWindowAndRenderer("CustomScreamer", 0, 0, Flags, out window, out Renderer))
+        if (!SDL.CreateWindowAndRenderer("CustomScreamer", 1920, 1080, Flags, out window, out Renderer))
         {
             SDL.LogError(SDL.LogCategory.Application, $"Error creating window and rendering: {SDL.GetError()}");
             return;
+        }
+
+        if (RuntimeInformation.IsOSPlatform(OSPlatform.Linux))
+        {
+            SDL.SetWindowFullscreen(window, true);
+            SDL.WindowPosCentered();
         }
         
         SDL.SetWindowHitTest(window, null, nint.Zero);

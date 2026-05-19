@@ -34,14 +34,15 @@ public class ImagePlayer
 
     public void ShowImage()
     {
+        SDL.WindowPosCentered();
         SDL.ShowWindow(window.GetWindow());
 
+        SDL.RenderTexture(window.Renderer, window.Texture, nint.Zero, nint.Zero);
         if (window.Texture == nint.Zero)
         {
             Console.WriteLine("Could not load image: " + imagePath);
             return;
         }
-        SDL.RenderTexture(window.Renderer, window.Texture, nint.Zero, nint.Zero);
         window.RenderPresent();
         
         SDL.Delay(TimeToShowImage);

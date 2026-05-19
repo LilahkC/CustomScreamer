@@ -5,7 +5,7 @@ namespace CustomScreamer.Game;
 
 public class Game
 {
-    public const float Chance = 10f;
+    public const float Chance = 40f;
     public const float Time = 1f;
 
     private readonly SoundPlayer soundPlayer = new();
