@@ -35,7 +35,6 @@ public class ImagePlayer
     public void ShowImage()
     {
         SDL.WindowPosCentered();
-        SDL.SetWindowFullscreen(window.GetWindow(), true);
         SDL.ShowWindow(window.GetWindow());
 
         SDL.RenderTexture(window.Renderer, window.Texture, nint.Zero, nint.Zero);
