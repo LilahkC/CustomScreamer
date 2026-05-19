@@ -1,8 +1,4 @@
-﻿using System.Security;
-
-namespace CustomScreamer.Renderer;
-
-using System.Runtime.InteropServices;
+﻿namespace CustomScreamer.Renderer;
 using SDL3;
 
 public class Window
@@ -21,7 +17,8 @@ public class Window
             return;
         }
         
-        const SDL.WindowFlags Flags = SDL.WindowFlags.AlwaysOnTop | SDL.WindowFlags.NotFocusable | SDL.WindowFlags.Fullscreen | SDL.WindowFlags.Hidden | SDL.WindowFlags.OpenGL;
+        const SDL.WindowFlags Flags = SDL.WindowFlags.AlwaysOnTop | SDL.WindowFlags.NotFocusable | SDL.WindowFlags.Borderless | 
+                                      SDL.WindowFlags.Fullscreen | SDL.WindowFlags.Hidden | SDL.WindowFlags.Utility;
         
         if (!SDL.CreateWindowAndRenderer("CustomScreamer", 0, 0, Flags, out window, out Renderer))
         {
