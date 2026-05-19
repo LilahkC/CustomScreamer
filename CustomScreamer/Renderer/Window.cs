@@ -17,8 +17,8 @@ public class Window
             return;
         }
         
-        const SDL.WindowFlags Flags = SDL.WindowFlags.AlwaysOnTop | SDL.WindowFlags.NotFocusable | SDL.WindowFlags.Borderless | 
-                                      SDL.WindowFlags.Fullscreen | SDL.WindowFlags.Hidden | SDL.WindowFlags.Utility;
+        const SDL.WindowFlags Flags = SDL.WindowFlags.AlwaysOnTop | SDL.WindowFlags.NotFocusable | SDL.WindowFlags.Borderless 
+                                      | SDL.WindowFlags.Hidden | SDL.WindowFlags.Maximized | SDL.WindowFlags.Vulkan;
         
         if (!SDL.CreateWindowAndRenderer("CustomScreamer", 0, 0, Flags, out window, out Renderer))
         {
