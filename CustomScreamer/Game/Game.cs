@@ -11,7 +11,7 @@ public class Game
     private readonly SoundPlayer soundPlayer = new();
     private readonly ImagePlayer imagePlayer = new();
     private readonly GifPlayer gifPlayer = new();
-    private readonly Utils utils = new();
+    private readonly Utils.Utils utils = new();
     private Window window;
     
     public Game(Window Window)
@@ -22,14 +22,14 @@ public class Game
     public void Initialize()
     {
         soundPlayer.Initialize();
-        imagePlayer.Initialize(window);
+        //imagePlayer.Initialize(window);
         //gifPlayer.Initialize(window);
     }
     
     private void PlayScreamer()
     {
         soundPlayer.PlaySound();
-        imagePlayer.ShowImage();
+        //imagePlayer.ShowImage();
         //gifPlayer.ShowGif();
     }
     
@@ -45,7 +45,7 @@ public class Game
     public void Quit()
     {
         soundPlayer.Quit();
-        imagePlayer.Quit();
+        //imagePlayer.Quit();
         //gifPlayer.Quit();
     }
 }

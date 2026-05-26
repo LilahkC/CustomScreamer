@@ -28,14 +28,14 @@ public class GifPlayer
     
     public void ShowGif()
     {
-        SDL.ShowWindow(window.GetWindow());
-        nint animation = Image.LoadAnimation(gifPath);
-
-        if (animation == nint.Zero)
-        {
-            Console.WriteLine("Could not load gif: " + gifPath);
-            return;
-        }
+       // SDL.ShowWindow(window.GetWindow());
+       // nint animation = Image.LoadAnimation(gifPath);
+//
+       // if (animation == nint.Zero)
+       // {
+       //     Console.WriteLine("Could not load gif: " + gifPath);
+       //     return;
+       // }
     }
     
     public void Quit()

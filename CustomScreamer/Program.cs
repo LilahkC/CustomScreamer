@@ -26,6 +26,6 @@ internal static class Program
     private static void Quit()
     {
         Game.Quit();
-        Window.Quit();
+        Window.Destroy();
     }
 }

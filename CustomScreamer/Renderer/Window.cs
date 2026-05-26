@@ -1,92 +1,144 @@
-﻿using System.Runtime.InteropServices;
-
-namespace CustomScreamer.Renderer;
+﻿using System.Runtime.Versioning;
+using CustomScreamer.Utils;
 using SDL3;
+using static SDL3.SDL;
 
-public class Window
+namespace CustomScreamer.Renderer
 {
-    public nint Renderer;
-    private nint window;
-    public bool Loop = true;
-    private readonly TrayMenu trayMenu = new();
-    public nint Texture;
-    
-    public void Initialize()
+    public class Window
     {
-        if (!SDL.Init(SDL.InitFlags.Video | SDL.InitFlags.Audio))
-        {
-            SDL.LogError(SDL.LogCategory.System, $"SDL could not initialize: {SDL.GetError()}");
-            return;
-        }
+        internal nint SDLWindowHandle { get; private set; } = nint.Zero;
+        public bool Loop = true;
+        private readonly TrayMenu trayMenu = new();
+        public nint Texture;
         
-        const SDL.WindowFlags Flags = SDL.WindowFlags.AlwaysOnTop | SDL.WindowFlags.NotFocusable | SDL.WindowFlags.Fullscreen | 
-                                      SDL.WindowFlags.Hidden;
-        
-        if (!SDL.CreateWindowAndRenderer("CustomScreamer", 1920, 1080, Flags, out window, out Renderer))
+        internal readonly bool IsWayland;
+
+        public IntPtr WindowHandle
         {
-            SDL.LogError(SDL.LogCategory.Application, $"Error creating window and rendering: {SDL.GetError()}");
-            return;
-        }
-
-        if (RuntimeInformation.IsOSPlatform(OSPlatform.Linux))
-        {
-            SDL.SetWindowFullscreen(window, true);
-            SDL.WindowPosCentered();
-        }
-        
-        SDL.SetWindowHitTest(window, null, nint.Zero);
-        
-        SDL.SetRenderDrawColor(Renderer, 0, 0, 0, 0);
-        SDL.SetRenderDrawBlendMode(Renderer, SDL.BlendMode.Blend);
-
-        SetShowWindow(false);
-        trayMenu.CreateTray();
-    }
-
-    public void Update()
-    {
-        PoolEvents();
-    }
-    
-    public void Quit()
-    {
-        SDL.DestroyRenderer(Renderer);
-        SDL.DestroyTray(trayMenu.Tray);
-        SDL.DestroyWindow(window);
-        SDL.Quit();
-    }
-    
-    public void SetShowWindow(bool show)
-    {
-        if(show)
-            SDL.ShowWindow(window);
-        else
-            SDL.HideWindow(window);
-    }
-
-    public void ClearRenderer()
-    {
-        SDL.RenderClear(Renderer);
-    }
-    
-    public void RenderPresent()
-    {
-        SDL.RenderPresent(Renderer);
-    }
-
-    public void PoolEvents()
-    {
-        while (SDL.PollEvent(out var e))
-        {
-            if ((SDL.EventType)e.Type == SDL.EventType.Quit)
+            get
             {
-                Loop = false;
+                if (SDLWindowHandle == nint.Zero)
+                    return IntPtr.Zero;
+
+                uint props = GetWindowProperties(SDLWindowHandle);
+                if (props == 0)
+                    return IntPtr.Zero;
+
+                switch (RuntimeInfo.OS)
+                {
+                    case RuntimeInfo.Platform.Windows:
+                        return GetPointerProperty(props, Props.WindowWin32HWNDPointer, IntPtr.Zero);
+
+                    case RuntimeInfo.Platform.Linux:
+                        if (IsWayland)
+                            return GetPointerProperty(props, Props.WindowWaylandSurfacePointer, IntPtr.Zero);
+
+                        if (GetCurrentVideoDriver() == "x11")
+                            return new(GetNumberProperty(props, Props.WindowX11WindowNumber, 0));
+
+                        return IntPtr.Zero;
+
+                    case RuntimeInfo.Platform.macOS:
+                        return GetPointerProperty(props, Props.WindowCocoaWindowPointer, IntPtr.Zero);
+
+                    default:
+                        throw new ArgumentOutOfRangeException();
+                }
             }
         }
-    }
 
-    public nint GetWindow()
-    {
-        return window;
+        [SupportedOSPlatform("linux")]
+        public IntPtr DisplayHandle
+        {
+            get
+            {
+                if (SDLWindowHandle == nint.Zero)
+                    return IntPtr.Zero;
+
+                uint props = GetWindowProperties(SDLWindowHandle);
+                if (props == 0)
+                    return IntPtr.Zero;
+
+                if (IsWayland)
+                    return GetPointerProperty(props, Props.WindowWaylandDisplayPointer, IntPtr.Zero);
+
+                if (GetCurrentVideoDriver() == "x11")
+                    return GetPointerProperty(props, Props.WindowX11DisplayPointer, IntPtr.Zero);
+
+                return IntPtr.Zero;
+            }
+        }
+
+        public Window()
+        {
+            if (!Init(InitFlags.Video | InitFlags.Audio))
+            {
+                LogError(LogCategory.System, $"could not initialize: {GetError()}");
+                return;
+            }
+            
+            IsWayland = GetCurrentVideoDriver() == "wayland";
+        }
+
+        public void Initialize()
+        {
+            const WindowFlags Flags = WindowFlags.AlwaysOnTop | WindowFlags.NotFocusable | WindowFlags.Fullscreen |
+                                          WindowFlags.Hidden;
+
+            SDLWindowHandle = CreateWindow("CustomScreamer", 1920, 1080, Flags);
+
+            if (SDLWindowHandle == nint.Zero)
+            {
+                LogError(LogCategory.Application, $"Error creating window and rendering: {GetError()}");
+                return;
+            }
+            
+            // we want text input to only be active when SDL3DesktopWindowTextInput is active.
+            // SDL activates it by default on some platforms: https://github.com/libsdl-org/SDL/blob/release-2.0.16/src/video/SDL_video.c#L573-L582
+            // so we deactivate it on startup.
+            StopTextInput(SDLWindowHandle);
+
+            SetWindowHitTest(SDLWindowHandle, null, nint.Zero);
+
+            SetShowWindow(true);
+            trayMenu.CreateTray();
+        }
+
+        public void Update()
+        {
+            PoolEvents();
+        }
+
+        public void Destroy()
+        {
+            DestroyTray(trayMenu.Tray);
+            DestroyWindow(SDLWindowHandle);
+            Quit();
+        }
+
+        public void SetShowWindow(bool show)
+        {
+            if (show)
+                ShowWindow(SDLWindowHandle);
+            else
+                HideWindow(SDLWindowHandle);
+        }
+
+        public void PoolEvents()
+        {
+            while (PollEvent(out var e))
+            {
+                if ((EventType) e.Type == EventType.Quit)
+                {
+                    Loop = false;
+                }
+            }
+        }
+
+        public nint GetWindow()
+        {
+            return SDLWindowHandle;
+        }
     }
 }

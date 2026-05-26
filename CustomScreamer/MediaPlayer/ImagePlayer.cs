@@ -7,7 +7,6 @@ public class ImagePlayer
 {
     private string imagePath = "";
     public readonly uint TimeToShowImage = 500;
-    Window window;
 
     public void InitializePath()
     {
@@ -21,38 +20,38 @@ public class ImagePlayer
         Console.WriteLine(".jpg, .png or .jpeg file not found in the directory : " + baseDir);
     }
 
-    public void Initialize(Window Window)
+    public void Initialize()
     {
-        window = Window;
-        InitializePath();
-        window.Texture = Image.LoadTexture(window.Renderer, imagePath);
-        if(window.Texture != nint.Zero)
-            Console.WriteLine("Loaded Texture with image : " + imagePath);
-        else
-            Console.WriteLine("Could not load image: " + imagePath);
+     //   window = Window;
+     //   InitializePath();
+     //   window.Texture = Image.LoadTexture(window.Renderer, imagePath);
+     //   if(window.Texture != nint.Zero)
+     //       Console.WriteLine("Loaded Texture with image : " + imagePath);
+     //   else
+     //       Console.WriteLine("Could not load image: " + imagePath);
     }
 
     public void ShowImage()
     {
-        SDL.WindowPosCentered();
-        SDL.ShowWindow(window.GetWindow());
-
-        SDL.RenderTexture(window.Renderer, window.Texture, nint.Zero, nint.Zero);
-        if (window.Texture == nint.Zero)
-        {
-            Console.WriteLine("Could not load image: " + imagePath);
-            return;
-        }
-        window.RenderPresent();
-        
-        SDL.Delay(TimeToShowImage);
-        
-        window.ClearRenderer();
-        SDL.HideWindow(window.GetWindow());
+    //    SDL.WindowPosCentered();
+    //    SDL.ShowWindow(window.GetWindow());
+//
+    //    SDL.RenderTexture(window.Renderer, window.Texture, nint.Zero, nint.Zero);
+    //    if (window.Texture == nint.Zero)
+    //    {
+    //        Console.WriteLine("Could not load image: " + imagePath);
+    //        return;
+    //    }
+//
+    //    SDL.RenderPresent(window.GetWindow());
+    //    
+    //    SDL.Delay(TimeToShowImage);
+    //    
+    //    SDL.RenderClear(window.GetWindow());
+    //    SDL.HideWindow(window.GetWindow());
     }
     
     public void Quit()
     {
-        SDL.DestroyTexture(window.Texture);
     }
 }
