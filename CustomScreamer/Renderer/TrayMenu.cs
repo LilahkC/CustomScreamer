@@ -43,7 +43,7 @@ public class TrayMenu
     void SetStartup(nint userdata, nint entry)
     {
         bool enable = SDL.GetTrayEntryChecked(entry);
-        string? exePath = Environment.ProcessPath;
+        string? exePath = AppDomain.CurrentDomain.BaseDirectory;
 
         if (RuntimeInformation.IsOSPlatform(OSPlatform.Windows))
         {

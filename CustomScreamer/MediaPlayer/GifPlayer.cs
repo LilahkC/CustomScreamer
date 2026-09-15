@@ -10,7 +10,7 @@ public class GifPlayer
     
     public void InitializePath()
     {
-        string baseDir = Path.Combine("ListOfScreamers", "Foxy");
+        string baseDir = Path.Combine(AppDomain.CurrentDomain.BaseDirectory, "ListOfScreamers", "Foxy");
 
         gifPath = Directory.GetFiles(baseDir, "*.*").FirstOrDefault(f => f.EndsWith(".gif"))!;
 

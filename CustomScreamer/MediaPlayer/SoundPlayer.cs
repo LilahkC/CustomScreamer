@@ -23,7 +23,7 @@ public class SoundPlayer
         mixer = Mixer.CreateMixerDevice(SDL.AudioDeviceDefaultPlayback, nint.Zero);
         Mixer.SetMixerGain(mixer, Volume);
         
-        if (mixer != nint.Zero) 
+        if (mixer != nint.Zero)
             return true;
         
         Console.WriteLine($"MixerDevice creation failed: {SDL.GetError()}");
@@ -32,7 +32,7 @@ public class SoundPlayer
     
     public void InitializePath()
     {
-        string baseDir = Path.Combine("ListOfScreamers", "Screamer");
+        string baseDir = Path.Combine(AppDomain.CurrentDomain.BaseDirectory, "ListOfScreamers", "Screamer");
 
         mp3Path = Directory.GetFiles(baseDir, "*.*").FirstOrDefault(f => f.EndsWith(".mp3"))!;
 

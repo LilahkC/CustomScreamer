@@ -10,7 +10,7 @@ public class ImagePlayer
 
     public void InitializePath()
     {
-        string baseDir = Path.Combine("ListOfScreamers", "Screamer");
+        string baseDir = Path.Combine(AppDomain.CurrentDomain.BaseDirectory, "ListOfScreamers", "Screamer");
 
         imagePath = Directory.GetFiles(baseDir, "*.*").FirstOrDefault(f => f.EndsWith(".jpg") || f.EndsWith(".png") || f.EndsWith(".jpeg"))!;
 
