@@ -16,8 +16,10 @@ namespace CustomScreamer.Renderer
             
             Tray = SDL.CreateTray(image, null);
             nint trayMenu = SDL.CreateTrayMenu(Tray);
-            nint trayChance = SDL.InsertTrayEntryAt(trayMenu, 0, $"Chance : {Game.Game.Chance} %", SDL.TrayEntryFlags.Disabled);
-            nint trayTime = SDL.InsertTrayEntryAt(trayMenu, 1, $"Every {Game.Game.Time} sec", SDL.TrayEntryFlags.Disabled);
+            // tray chance
+            SDL.InsertTrayEntryAt(trayMenu, 0, $"Chance : {Game.Game.Chance} %", SDL.TrayEntryFlags.Disabled);
+            // tray time
+            SDL.InsertTrayEntryAt(trayMenu, 1, $"Every {Game.Game.Time} sec", SDL.TrayEntryFlags.Disabled);
             
             nint trayBoot = SDL.InsertTrayEntryAt(trayMenu, 2, $"Launch at boot", SDL.TrayEntryFlags.CheckBox);
             SDL.SetTrayEntryChecked(trayBoot, LaunchOnBoot.IsOpenOnBootEnabled());

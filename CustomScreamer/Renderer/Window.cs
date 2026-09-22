@@ -83,16 +83,22 @@ namespace CustomScreamer.Renderer
 
         public void Initialize()
         {
-            const WindowFlags Flags = WindowFlags.AlwaysOnTop | WindowFlags.NotFocusable | WindowFlags.Fullscreen |
-                                          WindowFlags.Hidden;
+            const WindowFlags Flags = WindowFlags.AlwaysOnTop | WindowFlags.NotFocusable | WindowFlags.Borderless | 
+                                      WindowFlags.Hidden;
+            
+            // get primary display and set w and h to the size
+            uint primaryDisplay = GetPrimaryDisplay();
+            GetDisplayBounds(primaryDisplay, out Rect display);
 
-            SDLWindowHandle = CreateWindow("CustomScreamer", 1920, 1080, Flags);
+            SDLWindowHandle = CreateWindow("CustomScreamer", display.W, display.H, Flags);
 
             if (SDLWindowHandle == nint.Zero)
             {
                 LogError(LogCategory.Application, $"Error creating window and rendering: {GetError()}");
                 return;
             }
+            
+            SetWindowOpacity(SDLWindowHandle, 0.0f);
             
             // we want text input to only be active when SDL3DesktopWindowTextInput is active.
             // SDL activates it by default on some platforms: https://github.com/libsdl-org/SDL/blob/release-2.0.16/src/video/SDL_video.c#L573-L582
