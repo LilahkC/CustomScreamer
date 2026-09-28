@@ -17,7 +17,6 @@ internal static class Program
         {
             Game.Update();
             Window.Update();
-            SDL.Delay(33);
         }
 
         Quit();

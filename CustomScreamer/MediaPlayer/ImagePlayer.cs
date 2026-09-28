@@ -52,5 +52,10 @@ public class ImagePlayer
     
     public void Quit()
     {
+        if (Window.Texture != nint.Zero)
+        {
+            SDL.DestroyTexture(Window.Texture);
+            Window.Texture = nint.Zero;
+        }
     }
 }

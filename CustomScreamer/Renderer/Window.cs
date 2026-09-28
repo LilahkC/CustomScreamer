@@ -13,7 +13,7 @@ namespace CustomScreamer.Renderer
         public static nint Texture { get; set; } = nint.Zero;
         public static nint Renderer { get; set; } = nint.Zero;
         
-        internal readonly bool IsWayland;
+        internal static bool IsWayland;
 
         public IntPtr WindowHandle
         {
@@ -94,6 +94,8 @@ namespace CustomScreamer.Renderer
             SDLWindowHandle = CreateWindow("CustomScreamer", display.W, display.H, Flags);
             Renderer = CreateRenderer(SDLWindowHandle, "");
 
+            SetRenderVSync(Renderer, 1);
+
             if (SDLWindowHandle == nint.Zero)
             {
                 LogError(LogCategory.Application, $"Error creating window and rendering: {GetError()}");
@@ -120,7 +122,13 @@ namespace CustomScreamer.Renderer
         public void Destroy()
         {
             DestroyTray(trayMenu.Tray);
-            DestroyWindow(SDLWindowHandle);
+            
+            if (SDLWindowHandle != nint.Zero)
+               DestroyWindow(SDLWindowHandle);
+            
+            if (Renderer != nint.Zero)
+                DestroyRenderer(Renderer);
+            
             Quit();
         }
 
@@ -128,11 +136,16 @@ namespace CustomScreamer.Renderer
         {
             if (show)
             {
+                if (IsWayland)
+                    SetWindowFullscreen(SDLWindowHandle, true);
+                
                 ShowWindow(SDLWindowHandle);
-                RaiseWindow(SDLWindowHandle);
             }
             else
             {
+                if (IsWayland)
+                    SetWindowFullscreen(SDLWindowHandle, false);
+                
                 HideWindow(SDLWindowHandle);
             }
         }

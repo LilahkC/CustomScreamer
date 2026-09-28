@@ -5,7 +5,6 @@ using SDL3;
 public class GifPlayer
 {
     private string gifPath = "";
-    Window window;
     private bool Running = true;
     
     public void InitializePath()
@@ -20,10 +19,9 @@ public class GifPlayer
         Console.WriteLine(".gif file not found in the directory : " + baseDir);
     }
 
-    public void Initialize(Window Window)
+    public void Initialize()
     {
         InitializePath();
-        window = Window;
     }
     
     public void ShowGif()
