@@ -43,6 +43,10 @@ public class SoundPlayer
             Mixer.Quit();
             SDL.Quit();
         }
+        else
+        {
+            Console.WriteLine("Loaded Sound : " + mp3Path[mp3Path.LastIndexOf("Screamer", StringComparison.Ordinal)..]);
+        }
     }
     
     public void Initialize()

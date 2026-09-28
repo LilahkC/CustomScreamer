@@ -6,7 +6,7 @@ namespace CustomScreamer;
 internal static class Program
 {
     private static readonly Window Window = new();
-    private static readonly Game.Game Game = new(Window);
+    private static readonly Game.Game Game = new();
 
     private static void Main()
     {

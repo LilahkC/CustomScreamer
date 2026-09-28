@@ -12,40 +12,34 @@ public class Game
     private readonly ImagePlayer imagePlayer = new();
     private readonly GifPlayer gifPlayer = new();
     private readonly Utils.Utils utils = new();
-    private Window window;
-    
-    public Game(Window Window)
-    {
-        window = Window;
-    }
 
     public void Initialize()
     {
         soundPlayer.Initialize();
-        //imagePlayer.Initialize(window);
+        imagePlayer.Initialize();
         //gifPlayer.Initialize(window);
     }
     
     private void PlayScreamer()
     {
         soundPlayer.PlaySound();
-        //imagePlayer.ShowImage();
+        imagePlayer.ShowImage();
         //gifPlayer.ShowGif();
     }
     
     public void Update()
     {
-        if (utils.Random(Chance, Time))
-        {
-            PlayScreamer();
-            Console.WriteLine("Screamer is screaming");
-        }
+        if (!utils.Random(Chance, Time)) 
+            return;
+        
+        PlayScreamer();
+        Console.WriteLine("Screamer is screaming");
     }
     
     public void Quit()
     {
         soundPlayer.Quit();
-        //imagePlayer.Quit();
+        imagePlayer.Quit();
         //gifPlayer.Quit();
     }
 }

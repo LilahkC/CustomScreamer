@@ -7,10 +7,11 @@ namespace CustomScreamer.Renderer
 {
     public class Window
     {
-        internal nint SDLWindowHandle { get; private set; } = nint.Zero;
+        public static nint SDLWindowHandle { get; private set; } = nint.Zero;
         public bool Loop = true;
         private readonly TrayMenu trayMenu = new();
-        public nint Texture;
+        public static nint Texture { get; set; } = nint.Zero;
+        public static nint Renderer { get; set; } = nint.Zero;
         
         internal readonly bool IsWayland;
 
@@ -91,14 +92,13 @@ namespace CustomScreamer.Renderer
             GetDisplayBounds(primaryDisplay, out Rect display);
 
             SDLWindowHandle = CreateWindow("CustomScreamer", display.W, display.H, Flags);
+            Renderer = CreateRenderer(SDLWindowHandle, "");
 
             if (SDLWindowHandle == nint.Zero)
             {
                 LogError(LogCategory.Application, $"Error creating window and rendering: {GetError()}");
                 return;
             }
-            
-            SetWindowOpacity(SDLWindowHandle, 0.0f);
             
             // we want text input to only be active when SDL3DesktopWindowTextInput is active.
             // SDL activates it by default on some platforms: https://github.com/libsdl-org/SDL/blob/release-2.0.16/src/video/SDL_video.c#L573-L582
@@ -107,7 +107,7 @@ namespace CustomScreamer.Renderer
 
             SetWindowHitTest(SDLWindowHandle, null, nint.Zero);
 
-            SetShowWindow(true);
+            SetShowWindow(false);
             trayMenu.CreateTray();
         }
 
@@ -133,7 +133,7 @@ namespace CustomScreamer.Renderer
 
         public void PoolEvents()
         {
-            while (PollEvent(out var e))
+            while (PollEvent(out Event e))
             {
                 if ((EventType) e.Type == EventType.Quit)
                 {

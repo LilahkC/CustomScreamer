@@ -10,17 +10,6 @@ namespace CustomScreamer.Utils
         /// </summary>
         public static string StartupDirectory { get; } = AppContext.BaseDirectory;
 
-        /// <summary>
-        /// Returns the absolute path of osu.Framework.dll.
-        /// </summary>
-        public static string GetFrameworkAssemblyPath()
-        {
-            var assembly = Assembly.GetAssembly(typeof(RuntimeInfo));
-            Debug.Assert(assembly != null);
-
-            return assembly.Location;
-        }
-
         public static Platform OS { get; }
 
         public static bool IsUnix => OS != Platform.Windows;
