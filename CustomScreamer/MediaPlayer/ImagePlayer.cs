@@ -32,7 +32,7 @@ public class ImagePlayer
 
     public void ShowImage()
     {
-        SDL.WindowPosCentered();
+        //SDL.WindowPosCentered();
         Window.SetShowWindow(true);
 
         SDL.RenderTexture(Window.Renderer, Window.Texture, nint.Zero, nint.Zero);
