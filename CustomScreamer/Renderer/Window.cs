@@ -84,8 +84,7 @@ namespace CustomScreamer.Renderer
 
         public void Initialize()
         {
-            const WindowFlags Flags = WindowFlags.AlwaysOnTop | WindowFlags.NotFocusable | WindowFlags.Borderless | 
-                                      WindowFlags.Hidden;
+            const WindowFlags Flags = WindowFlags.Fullscreen | WindowFlags.AlwaysOnTop | WindowFlags.Hidden;
             
             // get primary display and set w and h to the size
             uint primaryDisplay = GetPrimaryDisplay();
@@ -137,20 +136,14 @@ namespace CustomScreamer.Renderer
             if (show)
             {
                 if (IsWayland)
-                {
                     SetWindowFullscreen(SDLWindowHandle, true);
-                    SyncWindow(SDLWindowHandle);
-                }
                 
                 ShowWindow(SDLWindowHandle);
             }
             else
             {
                 if (IsWayland)
-                {
                     SetWindowFullscreen(SDLWindowHandle, false);
-                    SyncWindow(SDLWindowHandle);
-                }
                 
                 HideWindow(SDLWindowHandle);
             }
