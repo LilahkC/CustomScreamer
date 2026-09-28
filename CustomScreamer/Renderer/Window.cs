@@ -137,14 +137,20 @@ namespace CustomScreamer.Renderer
             if (show)
             {
                 if (IsWayland)
+                {
                     SetWindowFullscreen(SDLWindowHandle, true);
+                    SyncWindow(SDLWindowHandle);
+                }
                 
                 ShowWindow(SDLWindowHandle);
             }
             else
             {
                 if (IsWayland)
+                {
                     SetWindowFullscreen(SDLWindowHandle, false);
+                    SyncWindow(SDLWindowHandle);
+                }
                 
                 HideWindow(SDLWindowHandle);
             }
