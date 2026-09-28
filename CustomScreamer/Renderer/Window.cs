@@ -104,6 +104,7 @@ namespace CustomScreamer.Renderer
             // SDL activates it by default on some platforms: https://github.com/libsdl-org/SDL/blob/release-2.0.16/src/video/SDL_video.c#L573-L582
             // so we deactivate it on startup.
             StopTextInput(SDLWindowHandle);
+            SetWindowFocusable(SDLWindowHandle, false);
 
             SetWindowHitTest(SDLWindowHandle, null, nint.Zero);
 
@@ -123,12 +124,17 @@ namespace CustomScreamer.Renderer
             Quit();
         }
 
-        public void SetShowWindow(bool show)
+        public static void SetShowWindow(bool show)
         {
             if (show)
+            {
                 ShowWindow(SDLWindowHandle);
+                RaiseWindow(SDLWindowHandle);
+            }
             else
+            {
                 HideWindow(SDLWindowHandle);
+            }
         }
 
         public void PoolEvents()
@@ -140,11 +146,6 @@ namespace CustomScreamer.Renderer
                     Loop = false;
                 }
             }
-        }
-
-        public nint GetWindow()
-        {
-            return SDLWindowHandle;
         }
     }
 }

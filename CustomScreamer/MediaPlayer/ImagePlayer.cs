@@ -33,7 +33,7 @@ public class ImagePlayer
     public void ShowImage()
     {
         SDL.WindowPosCentered();
-        SDL.ShowWindow(Window.SDLWindowHandle);
+        Window.SetShowWindow(true);
 
         SDL.RenderTexture(Window.Renderer, Window.Texture, nint.Zero, nint.Zero);
         if (Window.Texture == nint.Zero)
@@ -47,7 +47,7 @@ public class ImagePlayer
         SDL.Delay(TimeToShowImage);
         
         SDL.RenderClear(Window.Renderer);
-        SDL.HideWindow(Window.SDLWindowHandle);
+        Window.SetShowWindow(false);
     }
     
     public void Quit()
