@@ -84,7 +84,7 @@ namespace CustomScreamer.Renderer
 
         public void Initialize()
         {
-            const WindowFlags Flags = WindowFlags.Fullscreen | WindowFlags.AlwaysOnTop | WindowFlags.Hidden;
+            const WindowFlags Flags = WindowFlags.Borderless | WindowFlags.AlwaysOnTop | WindowFlags.Hidden;
             
             // get primary display and set w and h to the size
             uint primaryDisplay = GetPrimaryDisplay();
@@ -92,7 +92,10 @@ namespace CustomScreamer.Renderer
 
             SDLWindowHandle = CreateWindow("CustomScreamer", display.W, display.H, Flags);
             Renderer = CreateRenderer(SDLWindowHandle, "");
-
+            
+            if(IsWayland)
+                SetHint("SDL_HINT_VIDEO_X11_NET_WM_BYPASS_COMPOSITOR", "1");
+            
             SetRenderVSync(Renderer, 1);
 
             if (SDLWindowHandle == nint.Zero)
