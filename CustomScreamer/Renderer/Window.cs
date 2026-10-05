@@ -1,6 +1,4 @@
 ﻿using System.Numerics;
-using System.Runtime.Versioning;
-using CustomScreamer.Utils;
 using ImGuiNET;
 using SDL3ImGui;
 using static SDL3.SDL;
@@ -9,21 +7,20 @@ namespace CustomScreamer.Renderer
 {
     public class Window
     {
+        private readonly EventFilter EventWatcher;
+        
         public static nint SDLWindowHandle { get; private set; } = nint.Zero;
-        public nint Device;
-        
-        public bool Loop = true;
-        private readonly TrayMenu trayMenu = new();
-        public static nint Texture { get; set; } = nint.Zero;
         public static nint Renderer { get; set; } = nint.Zero;
-        
-        public readonly ImGuiSDL3 Platform;
+        public static nint Texture { get; set; } = nint.Zero;
         public static ImGuiSDL3Renderer ImGUIRenderer;
         
-        private Rect DisplayBounds;
-        private FRect _srcRect;
-        private Rect _screenClipRect;
+        public bool Loop = true;
+        public static bool InGame;
+        private static bool startGame;
+        public readonly ImGuiSDL3 Platform;
         
+        private readonly TrayMenu trayMenu = new();
+
         public Window()
         {
             if (!Init(InitFlags.Video | InitFlags.Audio))
@@ -31,76 +28,147 @@ namespace CustomScreamer.Renderer
                 LogError(LogCategory.System, $"could not initialize: {GetError()}");
                 return;
             }
-            
+
+            EventWatcher = EventWatch;
+                
             nint context = ImGui.CreateContext();
             ImGui.SetCurrentContext(context);
             
-            const WindowFlags Flags = WindowFlags.Maximized | WindowFlags.Hidden;
+            GetDisplayBounds(GetPrimaryDisplay(), out Rect displayBounds);
             
-            // get primary display and set w and h to the size
-            GetDisplayBounds(GetPrimaryDisplay(), out DisplayBounds);
-
-            SDLWindowHandle = CreateWindow("CustomScreamer", DisplayBounds.W / 2, DisplayBounds.H / 2, Flags);
+            const WindowFlags Flags = WindowFlags.Resizable;
+            SDLWindowHandle = CreateWindow("CustomScreamer", displayBounds.W / 2, displayBounds.H / 2, Flags);
+            
             Renderer = CreateRenderer(SDLWindowHandle, "");
-
-            Device = Renderer;
-            Platform = new (SDLWindowHandle, Device);
-            ImGUIRenderer = new(Device);
+            
+            Platform = new (SDLWindowHandle, Renderer);
+            ImGUIRenderer = new(Renderer);
         }
-
+        
         public void Initialize()
         {
-            SetRenderVSync(Renderer, 1);
-                
-            if (SDLWindowHandle == nint.Zero)
+            if (SDLWindowHandle == nint.Zero || Renderer == nint.Zero)
             {
                 LogError(LogCategory.Application, $"Error creating window and rendering: {GetError()}");
                 return;
             }
             
+            AddEventWatch(EventWatcher, nint.Zero);
+            
+            SetRenderVSync(Renderer, 1);
+            
             ShowWindow(SDLWindowHandle);
             RaiseWindow(SDLWindowHandle);
+            
             RenderClear(Renderer);
             RenderPresent(Renderer);
+            
             trayMenu.CreateTray();
         }
-
+        
         public void Update()
         {
             PollEvents();
             
-            Platform.NewFrame();
-            ImGUIRenderer.NewFrame();
-            ImGui.NewFrame();
-
-            if(ImGui.Begin("ImGUI"))
-            {
-                ImGui.Text("Hello from SDL3 & ImGui!");
-
-                // Draw our texture in ImGui
-                ImGui.Image(Texture, new(_srcRect.W, _srcRect.H));
-            }
-            
-            ImGui.End();
-            ImGui.EndFrame();
+            if(!InGame)
+                BuildUI();
             
             Render();
+            
+            if (!startGame)
+                return;
+            
+            startGame = false;
+            CreateGameWindow();
         }
-
+        
         public void Destroy()
         {
             DestroyTray(trayMenu.Tray);
-            ImGui.DestroyContext();
             
-            if (SDLWindowHandle != nint.Zero)
-               DestroyWindow(SDLWindowHandle);
+            RemoveEventWatch(EventWatcher, nint.Zero);
+            
+            if (!InGame)
+                ImGui.DestroyContext();
             
             if (Renderer != nint.Zero)
+            {
                 DestroyRenderer(Renderer);
+                Renderer = nint.Zero;
+            }
+            
+            if (SDLWindowHandle != nint.Zero)
+            {
+                DestroyWindow(SDLWindowHandle);
+                SDLWindowHandle = nint.Zero;
+            }
             
             Quit();
         }
+        
+        private void PollEvents()
+        {
+            if (!InGame)
+                UpdateTextInputState();
+            
+            while (PollEvent(out Event e))
+            {
+                if (!InGame)
+                    Platform.ProcessEvent(e);
 
+                switch ((EventType)e.Type)
+                {
+                    case EventType.Quit:
+                    case EventType.WindowCloseRequested:
+                        Loop = false;
+                        break;
+                }
+            }
+        }
+        
+        private static void UpdateTextInputState()
+        {
+            if (ImGui.GetIO().WantTextInput)
+                StartTextInput(SDLWindowHandle);
+            else
+                StopTextInput(SDLWindowHandle);
+        }
+        
+        private void BuildUI()
+        {
+            Platform.NewFrame();
+            ImGUIRenderer.NewFrame();
+            ImGui.NewFrame();
+            
+            ImGuiViewportPtr viewport = ImGui.GetMainViewport();
+            ImGui.SetNextWindowPos(viewport.WorkPos);
+            ImGui.SetNextWindowSize(viewport.WorkSize);
+
+            const ImGuiWindowFlags Flags = ImGuiWindowFlags.NoDecoration;
+            
+            if (ImGui.Begin("ImGUI", Flags))
+            {
+                ImGui.SetCursorPos(new(viewport.WorkSize.X / 2 - 40f,  viewport.WorkSize.Y / 2 - 20f));
+                if (ImGui.Button("Play", new(40f,20f)))
+                    startGame = true;
+            }
+            
+            ImGui.End();
+        }
+        
+        private void Render()
+        {
+            RenderClear(Renderer);
+            
+            if (!InGame)
+            {
+                ImGui.Render();
+                ImGUIRenderer.RenderDrawData(ImGui.GetDrawData());
+            }
+            
+            RenderPresent(Renderer);
+        }
+        
         public static void SetShowWindow(bool show)
         {
             if (show)
@@ -113,39 +181,33 @@ namespace CustomScreamer.Renderer
         {
             SetWindowFullscreen(SDLWindowHandle, fullscreen);
         }
-
-        public void PollEvents()
+        
+        public static void CreateGameWindow()
         {
-            while (PollEvent(out Event e))
-            {
-                if(ImGui.GetIO().WantTextInput && !TextInputActive(SDLWindowHandle))
-                    StartTextInput(SDLWindowHandle);
-                else if(!ImGui.GetIO().WantTextInput && TextInputActive(SDLWindowHandle))
-                    StopTextInput(SDLWindowHandle);
-
-                Platform.ProcessEvent(e);
-                
-                switch ((EventType) e.Type)
-                {
-                    case EventType.Quit:
-                    case EventType.WindowCloseRequested:
-                        Loop = false;
-                        break;
-                }
-            }
+            InGame = true;
+            ImGui.DestroyContext();
+            StopTextInput(SDLWindowHandle);
+            
+            RenderClear(Renderer);
+            RenderPresent(Renderer);
+            
+            SetWindowFocusable(SDLWindowHandle, false);
+            SetWindowHitTest(SDLWindowHandle, null, nint.Zero);
+            SetWindowAlwaysOnTop(SDLWindowHandle, true);
+            SetFullscreen(true);
+            SetShowWindow(false);
+            
+            Game.Game.Initialize();
         }
-        private void Render()
+        
+        private bool EventWatch(nint userdata, ref Event e)
         {
-            RenderClear(Device);
-
-            // Reset the clip rect to the screen size
-            SetRenderClipRect(Device, _screenClipRect);
-
-            // Render ImGui
-            ImGui.Render();
-            ImGUIRenderer.RenderDrawData(ImGui.GetDrawData());
-
-            RenderPresent(Device);
+            if ((EventType)e.Type == EventType.WindowExposed && !InGame)
+            {
+                BuildUI();
+                Render();
+            }
+            return true;
         }
     }
 }

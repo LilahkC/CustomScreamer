@@ -11,7 +11,6 @@ internal static class Program
     private static void Main()
     {
         Window.Initialize();
-        Game.Initialize();
 
         while (Window.Loop)
         {
