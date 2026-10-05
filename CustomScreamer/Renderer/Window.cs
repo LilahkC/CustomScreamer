@@ -1,6 +1,8 @@
-﻿using System.Runtime.Versioning;
+﻿using System.Numerics;
+using System.Runtime.Versioning;
 using CustomScreamer.Utils;
-using SDL3;
+using ImGuiNET;
+using SDL3ImGui;
 using static SDL3.SDL;
 
 namespace CustomScreamer.Renderer
@@ -8,69 +10,20 @@ namespace CustomScreamer.Renderer
     public class Window
     {
         public static nint SDLWindowHandle { get; private set; } = nint.Zero;
+        public nint Device;
+        
         public bool Loop = true;
         private readonly TrayMenu trayMenu = new();
         public static nint Texture { get; set; } = nint.Zero;
         public static nint Renderer { get; set; } = nint.Zero;
         
-        internal static bool IsWayland;
-
-        public IntPtr WindowHandle
-        {
-            get
-            {
-                if (SDLWindowHandle == nint.Zero)
-                    return IntPtr.Zero;
-
-                uint props = GetWindowProperties(SDLWindowHandle);
-                if (props == 0)
-                    return IntPtr.Zero;
-
-                switch (RuntimeInfo.OS)
-                {
-                    case RuntimeInfo.Platform.Windows:
-                        return GetPointerProperty(props, Props.WindowWin32HWNDPointer, IntPtr.Zero);
-
-                    case RuntimeInfo.Platform.Linux:
-                        if (IsWayland)
-                            return GetPointerProperty(props, Props.WindowWaylandSurfacePointer, IntPtr.Zero);
-
-                        if (GetCurrentVideoDriver() == "x11")
-                            return new(GetNumberProperty(props, Props.WindowX11WindowNumber, 0));
-
-                        return IntPtr.Zero;
-
-                    case RuntimeInfo.Platform.macOS:
-                        return GetPointerProperty(props, Props.WindowCocoaWindowPointer, IntPtr.Zero);
-
-                    default:
-                        throw new ArgumentOutOfRangeException();
-                }
-            }
-        }
-
-        [SupportedOSPlatform("linux")]
-        public IntPtr DisplayHandle
-        {
-            get
-            {
-                if (SDLWindowHandle == nint.Zero)
-                    return IntPtr.Zero;
-
-                uint props = GetWindowProperties(SDLWindowHandle);
-                if (props == 0)
-                    return IntPtr.Zero;
-
-                if (IsWayland)
-                    return GetPointerProperty(props, Props.WindowWaylandDisplayPointer, IntPtr.Zero);
-
-                if (GetCurrentVideoDriver() == "x11")
-                    return GetPointerProperty(props, Props.WindowX11DisplayPointer, IntPtr.Zero);
-
-                return IntPtr.Zero;
-            }
-        }
-
+        public readonly ImGuiSDL3 Platform;
+        public static ImGuiSDL3Renderer ImGUIRenderer;
+        
+        private Rect DisplayBounds;
+        private FRect _srcRect;
+        private Rect _screenClipRect;
+        
         public Window()
         {
             if (!Init(InitFlags.Video | InitFlags.Audio))
@@ -79,51 +32,65 @@ namespace CustomScreamer.Renderer
                 return;
             }
             
-            IsWayland = GetCurrentVideoDriver() == "wayland";
+            nint context = ImGui.CreateContext();
+            ImGui.SetCurrentContext(context);
+            
+            const WindowFlags Flags = WindowFlags.Maximized | WindowFlags.Hidden;
+            
+            // get primary display and set w and h to the size
+            GetDisplayBounds(GetPrimaryDisplay(), out DisplayBounds);
+
+            SDLWindowHandle = CreateWindow("CustomScreamer", DisplayBounds.W / 2, DisplayBounds.H / 2, Flags);
+            Renderer = CreateRenderer(SDLWindowHandle, "");
+
+            Device = Renderer;
+            Platform = new (SDLWindowHandle, Device);
+            ImGUIRenderer = new(Device);
         }
 
         public void Initialize()
         {
-            const WindowFlags Flags = WindowFlags.Borderless | WindowFlags.AlwaysOnTop | WindowFlags.Hidden;
-            
-            // get primary display and set w and h to the size
-            uint primaryDisplay = GetPrimaryDisplay();
-            GetDisplayBounds(primaryDisplay, out Rect display);
-
-            SDLWindowHandle = CreateWindow("CustomScreamer", display.W, display.H, Flags);
-            Renderer = CreateRenderer(SDLWindowHandle, "");
-            
-            SetWindowFullscreenMode(SDLWindowHandle, nint.Zero);
-            SetWindowFullscreen(SDLWindowHandle, true);
-
             SetRenderVSync(Renderer, 1);
-
+                
             if (SDLWindowHandle == nint.Zero)
             {
                 LogError(LogCategory.Application, $"Error creating window and rendering: {GetError()}");
                 return;
             }
             
-            // we want text input to only be active when SDL3DesktopWindowTextInput is active.
-            // SDL activates it by default on some platforms: https://github.com/libsdl-org/SDL/blob/release-2.0.16/src/video/SDL_video.c#L573-L582
-            // so we deactivate it on startup.
-            StopTextInput(SDLWindowHandle);
-            //SetWindowFocusable(SDLWindowHandle, false);
-
-            SetWindowHitTest(SDLWindowHandle, null, nint.Zero);
-
-            SetShowWindow(false);
+            ShowWindow(SDLWindowHandle);
+            RaiseWindow(SDLWindowHandle);
+            RenderClear(Renderer);
+            RenderPresent(Renderer);
             trayMenu.CreateTray();
         }
 
         public void Update()
         {
-            PoolEvents();
+            PollEvents();
+            
+            Platform.NewFrame();
+            ImGUIRenderer.NewFrame();
+            ImGui.NewFrame();
+
+            if(ImGui.Begin("ImGUI"))
+            {
+                ImGui.Text("Hello from SDL3 & ImGui!");
+
+                // Draw our texture in ImGui
+                ImGui.Image(Texture, new(_srcRect.W, _srcRect.H));
+            }
+            
+            ImGui.End();
+            ImGui.EndFrame();
+            
+            Render();
         }
 
         public void Destroy()
         {
             DestroyTray(trayMenu.Tray);
+            ImGui.DestroyContext();
             
             if (SDLWindowHandle != nint.Zero)
                DestroyWindow(SDLWindowHandle);
@@ -137,26 +104,48 @@ namespace CustomScreamer.Renderer
         public static void SetShowWindow(bool show)
         {
             if (show)
-            {
                 ShowWindow(SDLWindowHandle);
-
-                SetWindowFullscreen(SDLWindowHandle, true);
-            }
             else
-            {
                 HideWindow(SDLWindowHandle);
-            }
+        }
+        
+        public static void SetFullscreen(bool fullscreen)
+        {
+            SetWindowFullscreen(SDLWindowHandle, fullscreen);
         }
 
-        public void PoolEvents()
+        public void PollEvents()
         {
             while (PollEvent(out Event e))
             {
-                if ((EventType) e.Type == EventType.Quit)
+                if(ImGui.GetIO().WantTextInput && !TextInputActive(SDLWindowHandle))
+                    StartTextInput(SDLWindowHandle);
+                else if(!ImGui.GetIO().WantTextInput && TextInputActive(SDLWindowHandle))
+                    StopTextInput(SDLWindowHandle);
+
+                Platform.ProcessEvent(e);
+                
+                switch ((EventType) e.Type)
                 {
-                    Loop = false;
+                    case EventType.Quit:
+                    case EventType.WindowCloseRequested:
+                        Loop = false;
+                        break;
                 }
             }
+        }
+        private void Render()
+        {
+            RenderClear(Device);
+
+            // Reset the clip rect to the screen size
+            SetRenderClipRect(Device, _screenClipRect);
+
+            // Render ImGui
+            ImGui.Render();
+            ImGUIRenderer.RenderDrawData(ImGui.GetDrawData());
+
+            RenderPresent(Device);
         }
     }
 }

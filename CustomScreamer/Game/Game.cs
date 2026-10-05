@@ -7,6 +7,7 @@ public class Game
 {
     public const float Chance = 40f;
     public const float Time = 1f;
+    public bool CanPlay { get; set; } = false;
 
     private readonly SoundPlayer soundPlayer = new();
     private readonly ImagePlayer imagePlayer = new();
@@ -29,7 +30,7 @@ public class Game
     
     public void Update()
     {
-        if (!utils.Random(Chance, Time)) 
+        if (!CanPlay || !utils.Random(Chance, Time)) 
             return;
         
         PlayScreamer();
