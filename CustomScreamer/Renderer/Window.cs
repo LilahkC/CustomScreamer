@@ -84,7 +84,7 @@ namespace CustomScreamer.Renderer
 
         public void Initialize()
         {
-            const WindowFlags Flags = WindowFlags.Fullscreen | WindowFlags.AlwaysOnTop | WindowFlags.Hidden;
+            const WindowFlags Flags = WindowFlags.Borderless | WindowFlags.AlwaysOnTop | WindowFlags.Hidden;
             
             // get primary display and set w and h to the size
             uint primaryDisplay = GetPrimaryDisplay();
@@ -92,6 +92,9 @@ namespace CustomScreamer.Renderer
 
             SDLWindowHandle = CreateWindow("CustomScreamer", display.W, display.H, Flags);
             Renderer = CreateRenderer(SDLWindowHandle, "");
+            
+            SetWindowFullscreenMode(SDLWindowHandle, nint.Zero);
+            SetWindowFullscreen(SDLWindowHandle, true);
 
             SetRenderVSync(Renderer, 1);
 
@@ -105,7 +108,7 @@ namespace CustomScreamer.Renderer
             // SDL activates it by default on some platforms: https://github.com/libsdl-org/SDL/blob/release-2.0.16/src/video/SDL_video.c#L573-L582
             // so we deactivate it on startup.
             StopTextInput(SDLWindowHandle);
-            SetWindowFocusable(SDLWindowHandle, false);
+            //SetWindowFocusable(SDLWindowHandle, false);
 
             SetWindowHitTest(SDLWindowHandle, null, nint.Zero);
 
@@ -136,6 +139,8 @@ namespace CustomScreamer.Renderer
             if (show)
             {
                 ShowWindow(SDLWindowHandle);
+
+                SetWindowFullscreen(SDLWindowHandle, true);
             }
             else
             {
