@@ -1,5 +1,4 @@
-﻿using System.Numerics;
-using CustomScreamer.Utils;
+﻿using CustomScreamer.Utils;
 using ImGuiNET;
 using SDL3ImGui;
 using static SDL3.SDL;
@@ -26,7 +25,7 @@ namespace CustomScreamer.Renderer
         private static Rect displayBounds;
         private static bool OpenSettingsAtLaunch = true;
         
-        private readonly TrayMenu trayMenu = new();
+        private static TrayMenu trayMenu = new();
 
         public Window()
         {
@@ -43,58 +42,62 @@ namespace CustomScreamer.Renderer
             
             const WindowFlags Flags = WindowFlags.Borderless | WindowFlags.AlwaysOnTop | WindowFlags.Hidden;
             SDLWindowHandle = CreateWindow("CustomScreamer", displayBounds.W, displayBounds.H, Flags);
-            
             SDLRenderer = CreateRenderer(SDLWindowHandle, "");
-
-            if (OpenSettingsAtLaunch)
-                CreateSettingsWindow();
-        }
-        
-        public static void CreateSettingsWindow()
-        {
-            nint context = ImGui.CreateContext();
-            ImGui.SetCurrentContext(context);
             
-            HideWindow(SDLWindowHandle);
+            SetRenderVSync(SDLRenderer, 1);
             
-            ShowWindow(SettingsWindowHandle);
-            RaiseWindow(SettingsWindowHandle);
+            StopTextInput(SDLWindowHandle);
             
-            const WindowFlags Flags = WindowFlags.Resizable;
-            SettingsWindowHandle = CreateWindow("Settings", displayBounds.W / 2, displayBounds.H / 2, Flags);
-            SettingsRenderer = CreateRenderer(SettingsWindowHandle, "");
-            
-            SetRenderVSync(SettingsRenderer, 1);
-            
-            Platform = new (SettingsWindowHandle, SettingsRenderer);
-            ImGUIRenderer = new(SettingsRenderer);
-            
-            InGame = false;
-        }
-        
-        public void Initialize()
-        {
             if (SDLWindowHandle == nint.Zero || SDLRenderer == nint.Zero)
             {
                 LogError(LogCategory.Application, $"Error creating window and rendering: {GetError()}");
                 return;
             }
+
+            if (OpenSettingsAtLaunch)
+                CreateSettingsWindow();
+            else
+                CreateGameWindow();
+        }
+        
+        public static void CreateSettingsWindow()
+        {
+            DestroyMainWindow();
+
+            ShowWindow(SettingsWindowHandle);
+            RaiseWindow(SettingsWindowHandle);
             
-            SetRenderVSync(SDLRenderer, 1);
+            const WindowFlags Flags = WindowFlags.Resizable;
             
-            trayMenu.CreateTray();
+            SettingsWindowHandle = CreateWindow("Settings", displayBounds.W / 2, displayBounds.H / 2, Flags);
+            SettingsRenderer = CreateRenderer(SettingsWindowHandle, "");
+            
+            SetRenderVSync(SettingsRenderer, 1);
+            
+            if (ImGui.GetCurrentContext() == nint.Zero)
+            {
+                nint context = ImGui.CreateContext();
+                ImGui.SetCurrentContext(context);
+            }
+            
+            Platform = new (SettingsWindowHandle, SettingsRenderer);
+            ImGUIRenderer = new(SettingsRenderer);
+            
+            InGame = false;
+            DestroyTray(trayMenu.Tray);
         }
         
         public void Update()
         {
             PollEvents();
-            
-            if(!InGame)
+
+            if (!InGame)
+            {
                 BuildUI();
-            
-            Render();
-            
-            if (!startGame)
+                Render();
+            }
+
+            if (!startGame) 
                 return;
             
             startGame = false;
@@ -105,20 +108,8 @@ namespace CustomScreamer.Renderer
         {
             DestroyTray(trayMenu.Tray);
             
-            if (!InGame)
-                ImGui.DestroyContext();
-            
-            if (SDLRenderer != nint.Zero)
-            {
-                DestroyRenderer(SDLRenderer);
-                SDLRenderer = nint.Zero;
-            }
-            
-            if (SDLWindowHandle != nint.Zero)
-            {
-                DestroyWindow(SDLWindowHandle);
-                SDLWindowHandle = nint.Zero;
-            }
+            DestroyMainWindow();
+            DestroySettingsWindow();
             
             Quit();
         }
@@ -161,27 +152,29 @@ namespace CustomScreamer.Renderer
             ImGui.SetNextWindowPos(viewport.WorkPos);
             ImGui.SetNextWindowSize(viewport.WorkSize);
 
-            const ImGuiWindowFlags Flags = ImGuiWindowFlags.NoDecoration;
+            const ImGuiWindowFlags Flags = ImGuiWindowFlags.NoDecoration | ImGuiWindowFlags.NoMove;
             
             if (ImGui.Begin("ImGUI", Flags))
             {
-                ImGui.SetCursorPos(new(viewport.WorkSize.X / 2 - 40f,  viewport.WorkSize.Y / 2 - 20f));
-                if (ImGui.Button("Play", new(40f,20f)))
+                if (ImGui.Button("Play"))
                     startGame = true;
+
+                //if (ImGui.Button("Connect"));
+
+                if (ImGui.Button("Quit"))
+                    Loop = false;
             }
             
             ImGui.End();
+            ImGui.EndFrame();
         }
         
         private void Render()
         {
             RenderClear(SettingsRenderer);
             
-            if (!InGame)
-            {
-                ImGui.Render();
-                ImGUIRenderer.RenderDrawData(ImGui.GetDrawData());
-            }
+            ImGui.Render();
+            ImGUIRenderer.RenderDrawData(ImGui.GetDrawData());
             
             RenderPresent(SettingsRenderer);
         }
@@ -189,19 +182,19 @@ namespace CustomScreamer.Renderer
         public static void CreateGameWindow()
         {
             InGame = true;
-            ImGui.DestroyContext();
-            DestroyWindow(SettingsWindowHandle);
-            StopTextInput(SDLWindowHandle);
+            DestroySettingsWindow();
             
             SetShowWindow(false);
             
             SetWindowFocusable(SDLWindowHandle, false);
             SetWindowHitTest(SDLWindowHandle, null, nint.Zero);
             SetWindowAlwaysOnTop(SDLWindowHandle, true);
+            SetWindowSize(SDLWindowHandle, displayBounds.W, displayBounds.H);
             SetWindowBordered(SDLWindowHandle, false);
             SetWindowFullscreenMode(SDLWindowHandle, nint.Zero);
             SetWindowFullscreen(SDLWindowHandle, true);
-            SetWindowSize(SDLWindowHandle, displayBounds.W, displayBounds.H);
+            
+            trayMenu.CreateTray();
             
             Game.Game.Initialize();
         }
@@ -227,6 +220,42 @@ namespace CustomScreamer.Renderer
                 Render();
             }
             return true;
+        }
+
+        private static void DestroyMainWindow()
+        {
+            if (SDLRenderer != nint.Zero)
+            {
+                DestroyRenderer(SDLRenderer);
+                SDLRenderer = nint.Zero;
+            }
+            
+            if (SDLWindowHandle != nint.Zero)
+            {
+                DestroyWindow(SDLWindowHandle);
+                SDLWindowHandle = nint.Zero;
+            }
+        }
+
+        private static void DestroySettingsWindow()
+        {
+            if (SettingsRenderer != nint.Zero)
+            {
+                DestroyRenderer(SettingsRenderer);
+                SettingsRenderer = nint.Zero;
+            }
+            
+            if (SettingsWindowHandle != nint.Zero)
+            {
+                DestroyWindow(SettingsWindowHandle);
+                SettingsWindowHandle = nint.Zero;
+            }
+            
+            Platform = null;
+            ImGUIRenderer = null;
+            
+            if(ImGui.GetCurrentContext() != nint.Zero)
+                ImGui.DestroyContext();
         }
     }
 }

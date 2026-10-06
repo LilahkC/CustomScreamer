@@ -81,7 +81,16 @@ public class SoundPlayer
 
     public void Quit()
     {
-        Mixer.DestroyMixer(mixer);
+        if(track != nint.Zero)
+            Mixer.DestroyTrack(track);
+        if(audio != nint.Zero)
+            Mixer.DestroyAudio(audio);
+        if(mixer != nint.Zero)
+            Mixer.DestroyMixer(mixer);
+        
+        if(!string.IsNullOrEmpty(mp3Path))
+            Console.WriteLine("Unloading Sound : " + mp3Path[mp3Path.LastIndexOf("Screamer", StringComparison.Ordinal)..]);
+    
         Mixer.Quit();
     }
 }

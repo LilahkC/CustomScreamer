@@ -55,6 +55,9 @@ public class ImagePlayer
         {
             SDL.DestroyTexture(Window.Texture);
             Window.Texture = nint.Zero;
+            
+            if(!string.IsNullOrEmpty(imagePath))
+                Console.WriteLine("Unloading Image : " + imagePath[imagePath.LastIndexOf("Screamer", StringComparison.Ordinal)..]);
         }
     }
 }

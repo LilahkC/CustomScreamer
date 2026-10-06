@@ -10,8 +10,6 @@ internal static class Program
 
     private static void Main()
     {
-        Window.Initialize();
-
         while (Window.Loop)
         {
             Game.Update();

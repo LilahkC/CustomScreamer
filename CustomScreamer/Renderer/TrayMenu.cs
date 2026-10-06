@@ -34,7 +34,7 @@ namespace CustomScreamer.Renderer
         
         private static void open_settings(nint userdata, nint entry)
         {
-            if(Window.InGame)
+            if (Window.InGame)
                 Window.CreateSettingsWindow();
         }
         
