@@ -23,7 +23,7 @@ public class ImagePlayer
     public void Initialize()
     {
         InitializePath();
-        Window.Texture = Image.LoadTexture(Window.Renderer, imagePath);
+        Window.Texture = Image.LoadTexture(Window.SDLRenderer, imagePath);
         if(Window.Texture != nint.Zero)
             Console.WriteLine("Loaded Image : " + imagePath[imagePath.LastIndexOf("Screamer", StringComparison.Ordinal)..]);
         else 
@@ -34,18 +34,18 @@ public class ImagePlayer
     {
         Window.SetShowWindow(true);
 
-        SDL.RenderTexture(Window.Renderer, Window.Texture, nint.Zero, nint.Zero);
+        SDL.RenderTexture(Window.SDLRenderer, Window.Texture, nint.Zero, nint.Zero);
         if (Window.Texture == nint.Zero)
         {
             Console.WriteLine("Could not load image: " + imagePath);
             return;
         }
 
-        SDL.RenderPresent(Window.Renderer);
+        SDL.RenderPresent(Window.SDLRenderer);
         
         SDL.Delay(TimeToShowImage);
         
-        SDL.RenderClear(Window.Renderer);
+        SDL.RenderClear(Window.SDLRenderer);
         Window.SetShowWindow(false);
     }
     

@@ -25,8 +25,17 @@ namespace CustomScreamer.Renderer
             SDL.SetTrayEntryChecked(trayBoot, LaunchOnBoot.IsOpenOnBootEnabled());
             SDL.SetTrayEntryCallback(trayBoot, LaunchOnBoot.SetStartup, nint.Zero);
             
-            nint trayQuit = SDL.InsertTrayEntryAt(trayMenu, 3, "Quit", SDL.TrayEntryFlags.Button);
+            nint traySettings = SDL.InsertTrayEntryAt(trayMenu, 3, "Settings", SDL.TrayEntryFlags.Button);
+            SDL.SetTrayEntryCallback(traySettings, open_settings, nint.Zero);
+            
+            nint trayQuit = SDL.InsertTrayEntryAt(trayMenu, 4, "Quit", SDL.TrayEntryFlags.Button);
             SDL.SetTrayEntryCallback(trayQuit, callback_quit, nint.Zero);
+        }
+        
+        private static void open_settings(nint userdata, nint entry)
+        {
+            if(Window.InGame)
+                Window.CreateSettingsWindow();
         }
         
         private static void callback_quit(nint userdata, nint entry)

@@ -5,7 +5,7 @@ using SDL3;
 public class GifPlayer
 {
     private string gifPath = "";
-    private bool Running = true;
+    private bool Running;
     
     public void InitializePath()
     {

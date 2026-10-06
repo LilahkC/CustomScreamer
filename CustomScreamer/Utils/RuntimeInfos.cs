@@ -15,6 +15,8 @@ namespace CustomScreamer.Utils
         public static bool IsUnix => OS != Platform.Windows;
         public static bool IsDesktop => OS == Platform.Linux || OS == Platform.macOS || OS == Platform.Windows;
         public static bool IsApple => OS == Platform.macOS;
+        
+        public static bool IsWindows => OS == Platform.Windows;
 
         static RuntimeInfo()
         {
