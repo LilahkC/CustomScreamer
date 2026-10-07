@@ -34,17 +34,18 @@ namespace CustomScreamer.Renderer
         
         private static void open_settings(nint userdata, nint entry)
         {
-            if (Window.InGame)
-                Window.CreateSettingsWindow();
+            Window.CreateSettingsWindow();
+            SDL.LogInfo(SDL.LogCategory.Application, "User opened Settings in System Tray");
         }
-        
+
         private static void callback_quit(nint userdata, nint entry)
         {
             SDL.Event quit = new()
             {
-                Type = (uint)SDL.EventType.Quit
+                Type = (uint) SDL.EventType.Quit
             };
             SDL.PushEvent(ref quit);
+            SDL.LogInfo(SDL.LogCategory.Application, "User pressed Quit in System Tray");
         }
     }
 }

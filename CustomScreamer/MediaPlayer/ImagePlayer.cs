@@ -17,7 +17,7 @@ public class ImagePlayer
         if (!string.IsNullOrEmpty(imagePath))
             return;
         
-        Console.WriteLine(".jpg, .png or .jpeg file not found in the directory : " + baseDir);
+        SDL.LogInfo(SDL.LogCategory.Error, ".jpg, .png or .jpeg file not found in the directory : " + baseDir);
     }
 
     public void Initialize()
@@ -25,9 +25,9 @@ public class ImagePlayer
         InitializePath();
         Window.Texture = Image.LoadTexture(Window.SDLRenderer, imagePath);
         if(Window.Texture != nint.Zero)
-            Console.WriteLine("Loaded Image : " + imagePath[imagePath.LastIndexOf("Screamer", StringComparison.Ordinal)..]);
+            SDL.LogInfo(SDL.LogCategory.Application,"Loaded Image : " + imagePath[imagePath.LastIndexOf("Screamer", StringComparison.Ordinal)..]);
         else 
-            Console.WriteLine("Could not load image: " + imagePath);
+            SDL.LogInfo(SDL.LogCategory.Error,"Could not load image: " + imagePath);
     }
 
     public void ShowImage()
@@ -35,11 +35,6 @@ public class ImagePlayer
         Window.SetShowWindow(true);
 
         SDL.RenderTexture(Window.SDLRenderer, Window.Texture, nint.Zero, nint.Zero);
-        if (Window.Texture == nint.Zero)
-        {
-            Console.WriteLine("Could not load image: " + imagePath);
-            return;
-        }
 
         SDL.RenderPresent(Window.SDLRenderer);
         
@@ -56,8 +51,8 @@ public class ImagePlayer
             SDL.DestroyTexture(Window.Texture);
             Window.Texture = nint.Zero;
             
-            if(!string.IsNullOrEmpty(imagePath))
-                Console.WriteLine("Unloading Image : " + imagePath[imagePath.LastIndexOf("Screamer", StringComparison.Ordinal)..]);
         }
+        if(!string.IsNullOrEmpty(imagePath))
+            SDL.LogInfo(SDL.LogCategory.Application,"Unloading Image : " + imagePath[imagePath.LastIndexOf("Screamer", StringComparison.Ordinal)..]);
     }
 }

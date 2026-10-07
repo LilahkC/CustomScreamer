@@ -1,45 +1,56 @@
 ﻿using CustomScreamer.MediaPlayer;
 using CustomScreamer.Renderer;
+using SDL3;
 
 namespace CustomScreamer.Game;
 
-public class Game
+public static class Game
 {
-    public const float Chance = 40f;
-    public const float Time = 1f;
+    public static float Chance = 0.25f;
+    public static float Time = 1f;
+    public static bool OpenSettingsOnLaunch = true;
+    
+    private static ulong nextRoll;
+    
+    private static readonly SoundPlayer SoundPlayer = new();
+    private static readonly ImagePlayer ImagePlayer = new();
+    private static readonly GifPlayer GifPlayer = new();
 
-    private static readonly SoundPlayer soundPlayer = new();
-    private static readonly ImagePlayer imagePlayer = new();
-    private readonly GifPlayer gifPlayer = new();
-    private readonly Utils.Utils utils = new();
-
+    private static void ScheduleNextRoll() => nextRoll = SDL.GetTicks() + (ulong)(Time * 1000);
+    
     public static void Initialize()
     {
-        soundPlayer.Initialize();
-        imagePlayer.Initialize();
+        SoundPlayer.Initialize();
+        ImagePlayer.Initialize();
+        ScheduleNextRoll();
         //gifPlayer.Initialize(window);
     }
     
-    private void PlayScreamer()
+    private static void PlayScreamer()
     {
-        soundPlayer.PlaySound();
-        imagePlayer.ShowImage();
+        SoundPlayer.PlaySound();
+        ImagePlayer.ShowImage();
         //gifPlayer.ShowGif();
     }
     
-    public void Update()
+    public static void Update()
     {
-        if (!Window.InGame || !utils.Random(Chance, Time)) 
+        if (!Window.InGame || SDL.GetTicks() < nextRoll)
             return;
-        
-        PlayScreamer();
-        Console.WriteLine("Screamer is screaming");
+
+        if (Random.Shared.NextSingle() < Chance / 100f)
+        {
+            PlayScreamer();
+            SDL.LogInfo(SDL.LogCategory.Application, "Screamer is screaming");
+        }
+
+        ScheduleNextRoll();
     }
     
-    public void Quit()
+    public static void Quit()
     {
-        soundPlayer.Quit();
-        imagePlayer.Quit();
+        SoundPlayer.Quit();
+        ImagePlayer.Quit();
         //gifPlayer.Quit();
     }
 }

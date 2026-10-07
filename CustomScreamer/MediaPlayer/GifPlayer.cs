@@ -16,7 +16,7 @@ public class GifPlayer
         if (!string.IsNullOrEmpty(gifPath))
             return;
         
-        Console.WriteLine(".gif file not found in the directory : " + baseDir);
+        SDL.LogInfo(SDL.LogCategory.Error, ".gif file not found in the directory : " + baseDir);
     }
 
     public void Initialize()
@@ -31,7 +31,7 @@ public class GifPlayer
 //
        // if (animation == nint.Zero)
        // {
-       //     Console.WriteLine("Could not load gif: " + gifPath);
+       //     SDL.LogInfo(SDL.LogCategory.Application, "Could not load gif: " + gifPath);
        //     return;
        // }
     }
