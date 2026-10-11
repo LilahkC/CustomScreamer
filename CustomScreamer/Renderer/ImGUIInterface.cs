@@ -57,18 +57,21 @@ public class ImGUIInterface
 
             if (ImGui.Button("Choose Screamer folder"))
             {
+                string folderPath;
                 switch (RuntimeInfo.OS)
                 {
                     case RuntimeInfo.Platform.Windows:
-                        Folder.SetFolder(windowsFileDialog.OpenFolder("Open Screamer Folder", AppDomain.CurrentDomain.BaseDirectory));
+                        folderPath = windowsFileDialog.OpenFolder("Open Screamer Folder", AppDomain.CurrentDomain.BaseDirectory);
+                        Folder.SetFolder(folderPath);
                         break;
                     case RuntimeInfo.Platform.Linux:
-                        string folderPath = linuxFileDialog.OpenFolder("Open Screamer Folder", AppDomain.CurrentDomain.BaseDirectory);
+                        folderPath = linuxFileDialog.OpenFolder("Open Screamer Folder", AppDomain.CurrentDomain.BaseDirectory);
                         if(!string.IsNullOrEmpty(folderPath))
-                            Folder.SetFolder(linuxFileDialog.OpenFolder("Open Screamer Folder", AppDomain.CurrentDomain.BaseDirectory));
+                            Folder.SetFolder(folderPath);
                         break;
                     case RuntimeInfo.Platform.macOS:
-                        Folder.SetFolder(macFileDialog.OpenFolder("Open Screamer Folder", AppDomain.CurrentDomain.BaseDirectory));
+                        folderPath = macFileDialog.OpenFolder("Open Screamer Folder", AppDomain.CurrentDomain.BaseDirectory);
+                        Folder.SetFolder(folderPath);
                         break;
                 }
             }
