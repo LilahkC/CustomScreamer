@@ -1,11 +1,10 @@
 ﻿using CustomScreamer.MediaPlayer;
-using NativeFileDialogExtendedSharp;
 
 namespace CustomScreamer.Utils;
 
 public static class Folder
 {
-    private static string BaseDir;
+    private static string BaseDir = Path.Combine(AppDomain.CurrentDomain.BaseDirectory, "ListOfScreamers", "Screamer");
     private static Random random = new Random();
     public static string RandomFolder;
     

@@ -6,13 +6,12 @@ namespace CustomScreamer.MediaPlayer;
 
 public static class ImagePlayer
 {
-    private static readonly string ImageBaseFolder = AppDomain.CurrentDomain.BaseDirectory + "ListOfScreamers" + "Screamer";
     private static string image;
     public const uint TimeToShowImage = 500;
 
     public static void InitializePath()
     {
-        string baseDir = string.IsNullOrEmpty(Folder.GetRandomFolder()) ? ImageBaseFolder : Folder.GetRandomFolder();
+        string baseDir = Folder.GetRandomFolder();
 
         image = Directory.GetFiles(baseDir, "*.*").FirstOrDefault(f => f.EndsWith(".jpg") || f.EndsWith(".png") || f.EndsWith(".jpeg"))!;
         

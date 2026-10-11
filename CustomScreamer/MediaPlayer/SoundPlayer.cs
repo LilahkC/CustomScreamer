@@ -5,7 +5,6 @@ using SDL3;
 
 public static class SoundPlayer
 {
-    private static readonly string Mp3BaseFolder = AppDomain.CurrentDomain.BaseDirectory + "ListOfScreamers" + "Screamer";
     private static string mp3;
     private const float Volume = 0.45f;
     private static nint mixer;
@@ -35,7 +34,7 @@ public static class SoundPlayer
     
     public static void InitializePath()
     {
-        string baseDir = string.IsNullOrEmpty(Folder.GetRandomFolder()) ? Mp3BaseFolder : Folder.GetRandomFolder();
+        string baseDir = Folder.GetRandomFolder();
 
         mp3 = Directory.GetFiles(baseDir, "*.*").FirstOrDefault(f => f.EndsWith(".mp3"))!;
 

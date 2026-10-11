@@ -24,7 +24,6 @@ public class ImGUIInterface
             if (ImGui.Button("Play"))
             {
                 SDL.LogInfo(SDL.LogCategory.Application, "User pressed 'Play' in Settings Window");
-                Folder.SetRandomFolder();
                 Settings.Save();
                 Window.StartGame = true;
             }

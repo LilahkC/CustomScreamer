@@ -17,6 +17,7 @@ public static class Game
     
     public static void Initialize()
     {
+        Folder.SetRandomFolder();
         ScheduleNextRoll();
     }
     
