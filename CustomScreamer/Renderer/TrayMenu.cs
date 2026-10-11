@@ -21,7 +21,7 @@ namespace CustomScreamer.Renderer
             // tray time
             SDL.InsertTrayEntryAt(trayMenu, 1, $"Every {Game.Game.Time} sec", SDL.TrayEntryFlags.Disabled);
             
-            nint trayBoot = SDL.InsertTrayEntryAt(trayMenu, 2, $"Launch at boot", SDL.TrayEntryFlags.CheckBox);
+            nint trayBoot = SDL.InsertTrayEntryAt(trayMenu, 2, "Launch at boot", SDL.TrayEntryFlags.CheckBox);
             SDL.SetTrayEntryChecked(trayBoot, LaunchOnBoot.IsOpenOnBootEnabled());
             SDL.SetTrayEntryCallback(trayBoot, LaunchOnBoot.SetStartup, nint.Zero);
             

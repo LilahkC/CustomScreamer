@@ -1,5 +1,5 @@
 ﻿using CustomScreamer.Utils;
-using NativeFileDialogExtendedSharp;
+using NativeFileDialog;
 using SDL3ImGui;
 namespace CustomScreamer.Renderer;
 using ImGuiNET;
@@ -7,6 +7,10 @@ using SDL3;
 
 public class ImGUIInterface
 {
+    private static WindowsFileDialog windowsFileDialog = new();
+    private static LinuxFileDialog linuxFileDialog = new();
+    private static MacOSFileDialog macFileDialog = new();
+    
     public static void BuildImGUIInterface(ImGuiSDL3 platform, ImGuiSDL3Renderer imGuiRenderer)
     {
         platform.NewFrame();
@@ -45,12 +49,26 @@ public class ImGUIInterface
                 Game.Game.Time = MathF.Max(Game.Game.Time, 0.01f);
 
             ImGui.Checkbox("Open Settings On Launch", ref Game.Game.OpenSettingsOnLaunch);
+            bool launchAtBoot = LaunchOnBoot.IsOpenOnBootEnabled();
+            if (ImGui.Checkbox("Launch at boot", ref launchAtBoot))
+            {
+                LaunchOnBoot.SetStartup(launchAtBoot);
+            }
 
             if (ImGui.Button("Choose Screamer folder"))
             {
-                NfdDialogResult result = Nfd.PickFolder(AppDomain.CurrentDomain.BaseDirectory);
-                if (result.Status == NfdStatus.Ok)
-                    Folder.SetFolder(result.Path);
+                switch (RuntimeInfo.OS)
+                {
+                    case RuntimeInfo.Platform.Windows:
+                        Folder.SetFolder(windowsFileDialog.OpenFolder("Open Screamer Folder", AppDomain.CurrentDomain.BaseDirectory));
+                        break;
+                    case RuntimeInfo.Platform.Linux:
+                        Folder.SetFolder(linuxFileDialog.OpenFolder("Open Screamer Folder", AppDomain.CurrentDomain.BaseDirectory));
+                        break;
+                    case RuntimeInfo.Platform.macOS:
+                        Folder.SetFolder(macFileDialog.OpenFolder("Open Screamer Folder", AppDomain.CurrentDomain.BaseDirectory));
+                        break;
+                }
             }
                 
             //if (ImGui.Button("Connect"));
