@@ -1,5 +1,5 @@
 ﻿using CustomScreamer.Utils;
-using NativeFileDialog;
+using NativeFileDialogCore;
 using SDL3ImGui;
 namespace CustomScreamer.Renderer;
 using ImGuiNET;
@@ -7,10 +7,6 @@ using SDL3;
 
 public class ImGUIInterface
 {
-    private static WindowsFileDialog windowsFileDialog = new();
-    private static LinuxFileDialog linuxFileDialog = new();
-    private static MacOSFileDialog macFileDialog = new();
-    
     public static void BuildImGUIInterface(ImGuiSDL3 platform, ImGuiSDL3Renderer imGuiRenderer)
     {
         platform.NewFrame();
@@ -57,7 +53,9 @@ public class ImGUIInterface
 
             if (ImGui.Button("Choose Screamer folder"))
             {
-                Folder.SetFolder(NativeFileDialog.NativeFileDialog.GetFileDialog()!.OpenFolder("Open Screamer Folder", AppDomain.CurrentDomain.BaseDirectory));
+                DialogResult folderDialogResult = Dialog.FolderPicker(AppDomain.CurrentDomain.BaseDirectory);
+                if(folderDialogResult.IsOk)
+                    Folder.SetFolder(folderDialogResult.Path);
             }
                 
             //if (ImGui.Button("Connect"));
