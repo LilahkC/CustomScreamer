@@ -1,4 +1,5 @@
 ﻿using CustomScreamer.Utils;
+using NativeFileDialogExtendedSharp;
 using SDL3ImGui;
 namespace CustomScreamer.Renderer;
 using ImGuiNET;
@@ -23,6 +24,7 @@ public class ImGUIInterface
             if (ImGui.Button("Play"))
             {
                 SDL.LogInfo(SDL.LogCategory.Application, "User pressed 'Play' in Settings Window");
+                Folder.SetRandomFolder();
                 Settings.Save();
                 Window.StartGame = true;
             }
@@ -44,6 +46,13 @@ public class ImGUIInterface
                 Game.Game.Time = MathF.Max(Game.Game.Time, 0.01f);
 
             ImGui.Checkbox("Open Settings On Launch", ref Game.Game.OpenSettingsOnLaunch);
+
+            if (ImGui.Button("Choose Screamer folder"))
+            {
+                NfdDialogResult result = Nfd.PickFolder(AppDomain.CurrentDomain.BaseDirectory);
+                if (result.Status == NfdStatus.Ok)
+                    Folder.SetFolder(result.Path);
+            }
                 
             //if (ImGui.Button("Connect"));
 

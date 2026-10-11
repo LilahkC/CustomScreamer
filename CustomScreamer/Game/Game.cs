@@ -1,5 +1,6 @@
 ﻿using CustomScreamer.MediaPlayer;
 using CustomScreamer.Renderer;
+using CustomScreamer.Utils;
 using SDL3;
 
 namespace CustomScreamer.Game;
@@ -12,22 +13,16 @@ public static class Game
     
     private static ulong nextRoll;
     
-    private static readonly SoundPlayer SoundPlayer = new();
-    private static readonly ImagePlayer ImagePlayer = new();
-    private static readonly GifPlayer GifPlayer = new();
-
     private static void ScheduleNextRoll() => nextRoll = SDL.GetTicks() + (ulong)(Time * 1000);
     
     public static void Initialize()
     {
-        SoundPlayer.Initialize();
-        ImagePlayer.Initialize();
         ScheduleNextRoll();
-        //gifPlayer.Initialize(window);
     }
     
     private static void PlayScreamer()
     {
+        Folder.SetRandomFolder();
         SoundPlayer.PlaySound();
         ImagePlayer.ShowImage();
         //gifPlayer.ShowGif();

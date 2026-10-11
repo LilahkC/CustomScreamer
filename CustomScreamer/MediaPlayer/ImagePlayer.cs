@@ -1,36 +1,38 @@
 ﻿using CustomScreamer.Renderer;
+using CustomScreamer.Utils;
 using SDL3;
 
 namespace CustomScreamer.MediaPlayer;
 
-public class ImagePlayer
+public static class ImagePlayer
 {
-    private string imagePath = "";
+    private static readonly string ImageBaseFolder = AppDomain.CurrentDomain.BaseDirectory + "ListOfScreamers" + "Screamer";
+    private static string image;
     public const uint TimeToShowImage = 500;
 
-    public void InitializePath()
+    public static void InitializePath()
     {
-        string baseDir = Path.Combine(AppDomain.CurrentDomain.BaseDirectory, "ListOfScreamers", "Screamer");
+        string baseDir = string.IsNullOrEmpty(Folder.GetRandomFolder()) ? ImageBaseFolder : Folder.GetRandomFolder();
 
-        imagePath = Directory.GetFiles(baseDir, "*.*").FirstOrDefault(f => f.EndsWith(".jpg") || f.EndsWith(".png") || f.EndsWith(".jpeg"))!;
-
-        if (!string.IsNullOrEmpty(imagePath))
+        image = Directory.GetFiles(baseDir, "*.*").FirstOrDefault(f => f.EndsWith(".jpg") || f.EndsWith(".png") || f.EndsWith(".jpeg"))!;
+        
+        if (!string.IsNullOrEmpty(image))
             return;
         
         SDL.LogInfo(SDL.LogCategory.Error, ".jpg, .png or .jpeg file not found in the directory : " + baseDir);
     }
 
-    public void Initialize()
+    public static void Initialize()
     {
         InitializePath();
-        Window.Texture = Image.LoadTexture(Window.SDLRenderer, imagePath);
+        Window.Texture = Image.LoadTexture(Window.SDLRenderer, image);
         if(Window.Texture != nint.Zero)
-            SDL.LogInfo(SDL.LogCategory.Application,"Loaded Image : " + imagePath[imagePath.LastIndexOf("Screamer", StringComparison.Ordinal)..]);
+            SDL.LogInfo(SDL.LogCategory.Application,"Loaded Image : " + image[image.LastIndexOf("Screamer", StringComparison.Ordinal)..]);
         else 
-            SDL.LogInfo(SDL.LogCategory.Error,"Could not load image: " + imagePath);
+            SDL.LogInfo(SDL.LogCategory.Error,"Could not load image: " + image);
     }
 
-    public void ShowImage()
+    public static void ShowImage()
     {
         Window.SetShowWindow(true);
 
@@ -44,7 +46,7 @@ public class ImagePlayer
         Window.SetShowWindow(false);
     }
     
-    public void Quit()
+    public static void Quit()
     {
         if (Window.Texture != nint.Zero)
         {
@@ -52,7 +54,11 @@ public class ImagePlayer
             Window.Texture = nint.Zero;
             
         }
-        if(!string.IsNullOrEmpty(imagePath))
-            SDL.LogInfo(SDL.LogCategory.Application,"Unloading Image : " + imagePath[imagePath.LastIndexOf("Screamer", StringComparison.Ordinal)..]);
+
+        if (!string.IsNullOrEmpty(image))
+        {
+            SDL.LogInfo(SDL.LogCategory.Application,"Unloading Image : " + image);
+            image = string.Empty;
+        }
     }
 }

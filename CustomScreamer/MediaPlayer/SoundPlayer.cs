@@ -1,13 +1,16 @@
-﻿namespace CustomScreamer.MediaPlayer;
+﻿using CustomScreamer.Utils;
+
+namespace CustomScreamer.MediaPlayer;
 using SDL3;
 
-public class SoundPlayer
+public static class SoundPlayer
 {
-    private string mp3Path = "";
+    private static readonly string Mp3BaseFolder = AppDomain.CurrentDomain.BaseDirectory + "ListOfScreamers" + "Screamer";
+    private static string mp3;
     private const float Volume = 0.45f;
-    private nint mixer;
-    private nint audio;
-    private nint track;
+    private static nint mixer;
+    private static nint audio;
+    private static nint track;
     
     private static bool InitializeMixer()
     {
@@ -18,7 +21,7 @@ public class SoundPlayer
         return false;
     }
 
-    private bool InitializeMixerDevice()
+    private static bool InitializeMixerDevice()
     {
         mixer = Mixer.CreateMixerDevice(SDL.AudioDeviceDefaultPlayback, nint.Zero);
         Mixer.SetMixerGain(mixer, Volume);
@@ -30,13 +33,13 @@ public class SoundPlayer
         return false;
     }
     
-    public void InitializePath()
+    public static void InitializePath()
     {
-        string baseDir = Path.Combine(AppDomain.CurrentDomain.BaseDirectory, "ListOfScreamers", "Screamer");
+        string baseDir = string.IsNullOrEmpty(Folder.GetRandomFolder()) ? Mp3BaseFolder : Folder.GetRandomFolder();
 
-        mp3Path = Directory.GetFiles(baseDir, "*.*").FirstOrDefault(f => f.EndsWith(".mp3"))!;
+        mp3 = Directory.GetFiles(baseDir, "*.*").FirstOrDefault(f => f.EndsWith(".mp3"))!;
 
-        if (string.IsNullOrEmpty(mp3Path))
+        if (string.IsNullOrEmpty(mp3))
         {
             SDL.LogInfo(SDL.LogCategory.Error, "MP3 file not found in the directory : " + baseDir);
             Mixer.DestroyMixer(mixer);
@@ -45,11 +48,11 @@ public class SoundPlayer
         }
         else
         {
-            SDL.LogInfo(SDL.LogCategory.Application, "Loaded Sound : " + mp3Path[mp3Path.LastIndexOf("Screamer", StringComparison.Ordinal)..]);
+            SDL.LogInfo(SDL.LogCategory.Application, "Loaded Sound : " + mp3[mp3.LastIndexOf("Screamer", StringComparison.Ordinal)..]);
         }
     }
     
-    public void Initialize()
+    public static void Initialize()
     {
         if (!InitializeMixer())
             return;
@@ -58,7 +61,7 @@ public class SoundPlayer
             return;
         
         InitializePath();
-        audio = Mixer.LoadAudio(mixer, mp3Path, predecode: true);
+        audio = Mixer.LoadAudio(mixer, mp3, predecode: true);
         if (audio == nint.Zero)
         {
             SDL.LogInfo(SDL.LogCategory.Error, $"Failed loading audio: {SDL.GetError()}");
@@ -74,12 +77,12 @@ public class SoundPlayer
         }
     }
     
-    public void PlaySound()
+    public static void PlaySound()
     {
         Mixer.PlayTrack(track, 0);
     }
 
-    public void Quit()
+    public static void Quit()
     {
         if(track != nint.Zero)
             Mixer.DestroyTrack(track);
@@ -87,9 +90,12 @@ public class SoundPlayer
             Mixer.DestroyAudio(audio);
         if(mixer != nint.Zero)
             Mixer.DestroyMixer(mixer);
-        
-        if(!string.IsNullOrEmpty(mp3Path))
-            SDL.LogInfo(SDL.LogCategory.Application, "Unloading Sound : " + mp3Path[mp3Path.LastIndexOf("Screamer", StringComparison.Ordinal)..]);
+
+        if (!string.IsNullOrEmpty(mp3))
+        {
+            SDL.LogInfo(SDL.LogCategory.Application, "Unloading Sound : " + mp3);
+            mp3 = "";
+        }
     
         Mixer.Quit();
     }

@@ -10,16 +10,12 @@ public static class Settings
         "CustomScreamer",
         "settings.json");
     
-    private static readonly JsonSerializerOptions JsonOptions = new()
-    {
-        WriteIndented = true
-    };
-    
     private class Data
     {
         public float Chance { get; init; } = 0.25f;
         public float Time { get; init; } = 1f;
         public bool OpenSettingsOnLaunch { get; init; } = true;
+        public string LastScreamerFolder { get; init; }
     }
     
     public static void Load()
@@ -34,6 +30,7 @@ public static class Settings
         Game.Game.Chance = data.Chance;
         Game.Game.Time = data.Time;
         Game.Game.OpenSettingsOnLaunch = data.OpenSettingsOnLaunch;
+        Folder.SetFolder(data.LastScreamerFolder);
             
         SDL.LogInfo(SDL.LogCategory.Application, "Loaded Settings");
     }
@@ -46,10 +43,11 @@ public static class Settings
         {
             Chance = Game.Game.Chance,
             Time = Game.Game.Time,
-            OpenSettingsOnLaunch = Game.Game.OpenSettingsOnLaunch
+            OpenSettingsOnLaunch = Game.Game.OpenSettingsOnLaunch,
+            LastScreamerFolder = Folder.GetBaseDir()
         };
         
-        File.WriteAllText(FilePath, JsonSerializer.Serialize(data, JsonOptions));
+        File.WriteAllText(FilePath, JsonSerializer.Serialize(data));
         
         SDL.LogInfo(SDL.LogCategory.Application, "Saved Settings");
     }
