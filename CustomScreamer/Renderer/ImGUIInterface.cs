@@ -63,7 +63,9 @@ public class ImGUIInterface
                         Folder.SetFolder(windowsFileDialog.OpenFolder("Open Screamer Folder", AppDomain.CurrentDomain.BaseDirectory));
                         break;
                     case RuntimeInfo.Platform.Linux:
-                        Folder.SetFolder(linuxFileDialog.OpenFolder("Open Screamer Folder", AppDomain.CurrentDomain.BaseDirectory));
+                        string folderPath = linuxFileDialog.OpenFolder("Open Screamer Folder", AppDomain.CurrentDomain.BaseDirectory);
+                        if(!string.IsNullOrEmpty(folderPath))
+                            Folder.SetFolder(linuxFileDialog.OpenFolder("Open Screamer Folder", AppDomain.CurrentDomain.BaseDirectory));
                         break;
                     case RuntimeInfo.Platform.macOS:
                         Folder.SetFolder(macFileDialog.OpenFolder("Open Screamer Folder", AppDomain.CurrentDomain.BaseDirectory));
