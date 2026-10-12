@@ -164,9 +164,9 @@ namespace CustomScreamer.Renderer
             DestroyTray(trayMenu.Tray);
         }
         
-        public static void CreateGameWindow(bool test)
+        public static void CreateGameWindow(bool testButton)
         {
-            if (!test)
+            if (!testButton)
             {
                 InGame = true;
                 DestroySettingsWindow();
@@ -196,7 +196,7 @@ namespace CustomScreamer.Renderer
             SetWindowFullscreenMode(SDLWindowHandle, nint.Zero);
             SetWindowFullscreen(SDLWindowHandle, true);
             
-            if(!test)
+            if(!testButton)
                 trayMenu.CreateTray();
             
             Game.Game.Initialize();

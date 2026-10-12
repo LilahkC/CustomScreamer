@@ -11,8 +11,7 @@ using SDL3;
 
 public class ImGUIInterface
 {
-    private static double confirmationHideTime;
-    private static DialogResult dialogResult;
+    private static double ConfirmationHideTime => ImGui.GetTime() + 2.0;
     private static string confirmationText = "";
     
     public static void BuildImGUIInterface(ImGuiSDL3 platform, ImGuiSDL3Renderer imGuiRenderer)
@@ -78,7 +77,7 @@ public class ImGUIInterface
             if (ImGui.Button("Choose Screamer folder"))
             {
                 string userFolder = Folder.GetUserFolder();
-                dialogResult = Dialog.FolderPicker(string.IsNullOrEmpty(userFolder) ? AppDomain.CurrentDomain.BaseDirectory : userFolder);
+                DialogResult dialogResult = Dialog.FolderPicker(string.IsNullOrEmpty(userFolder) ? AppDomain.CurrentDomain.BaseDirectory : userFolder);
 
                 if (dialogResult.IsOk)
                 {
@@ -87,7 +86,7 @@ public class ImGUIInterface
                 }
             }
             
-            if (ImGui.GetTime() < confirmationHideTime)
+            if (ImGui.GetTime() < ConfirmationHideTime)
             {
                 ImGui.PushStyleColor(ImGuiCol.Text, (Vector4)new(0.133f, 0.941f, 0.239f, 1f));
                 ImGui.TextWrapped(confirmationText);
@@ -132,6 +131,5 @@ public class ImGUIInterface
     private static void ShowConfirmation(string text)
     {
         confirmationText = new DirectoryInfo(text).Name;
-        confirmationHideTime = ImGui.GetTime() + 2.0;
     }
 }
