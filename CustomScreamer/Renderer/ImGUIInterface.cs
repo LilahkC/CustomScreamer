@@ -1,6 +1,8 @@
-﻿using CustomScreamer.Utils;
-using NativeFileDialogCore;
+﻿using CustomScreamer.MediaPlayer;
+using CustomScreamer.Utils;
+using NativeFileDialogSharp;
 using SDL3ImGui;
+
 namespace CustomScreamer.Renderer;
 using ImGuiNET;
 using SDL3;
@@ -43,19 +45,25 @@ public class ImGUIInterface
             ImGui.SetNextItemWidth(135f);
             if (ImGui.InputFloat("##Time", ref Game.Game.Time, 0.1f, 1f, "%.1f seconds", NumberOnly))
                 Game.Game.Time = MathF.Max(Game.Game.Time, 0.01f);
+            
+            ImGui.AlignTextToFramePadding();
+            ImGui.Text("Volume");
+            ImGui.SameLine(60f);
+            ImGui.SetNextItemWidth(90f);
+            if (ImGui.SliderFloat("##Volume", ref SoundPlayer.Volume, 0.1f, 100f, "%.0f%"))
+                SoundPlayer.UpdateVolume(SoundPlayer.Volume / 100);
 
             ImGui.Checkbox("Open Settings On Launch", ref Game.Game.OpenSettingsOnLaunch);
+            
             bool launchAtBoot = LaunchOnBoot.IsOpenOnBootEnabled();
             if (ImGui.Checkbox("Launch at boot", ref launchAtBoot))
-            {
                 LaunchOnBoot.SetStartup(launchAtBoot);
-            }
 
             if (ImGui.Button("Choose Screamer folder"))
             {
-                DialogResult folderDialogResult = Dialog.FolderPicker(AppDomain.CurrentDomain.BaseDirectory);
-                if(folderDialogResult.IsOk)
-                    Folder.SetFolder(folderDialogResult.Path);
+                DialogResult dialogResult = Dialog.FolderPicker(AppDomain.CurrentDomain.BaseDirectory);
+                if(dialogResult.IsOk)
+                    Folder.SetUserFolder(dialogResult.Path);
             }
                 
             //if (ImGui.Button("Connect"));

@@ -1,101 +1,159 @@
 ﻿using CustomScreamer.Utils;
+using SDL3;
 
 namespace CustomScreamer.MediaPlayer;
-using SDL3;
 
 public static class SoundPlayer
 {
-    private static string mp3;
-    private const float Volume = 0.45f;
+    public static float Volume;
+    
+    private static string mp3Path;
     private static nint mixer;
     private static nint audio;
     private static nint track;
+
+    private static readonly Mixer.TrackStoppedCallback OnTrackStopped = (_, _) => Unload();
+    private static bool IsMp3(string path) => string.Equals(Path.GetExtension(path), ".mp3", StringComparison.OrdinalIgnoreCase);
+    public static void InitializePath() => TrySetSound(Folder.GetFolder());
     
     private static bool InitializeMixer()
     {
         if (Mixer.Init())
             return true;
-        
-        SDL.LogInfo(SDL.LogCategory.Error, $"Mixer Init Error: {SDL.GetError()}");
+
+        SDL.LogInfo(SDL.LogCategory.Application, $"Mixer Init Error: {SDL.GetError()}");
         return false;
     }
 
     private static bool InitializeMixerDevice()
     {
         mixer = Mixer.CreateMixerDevice(SDL.AudioDeviceDefaultPlayback, nint.Zero);
-        Mixer.SetMixerGain(mixer, Volume);
-        
-        if (mixer != nint.Zero)
-            return true;
-        
-        SDL.LogInfo(SDL.LogCategory.Error, $"MixerDevice creation failed: {SDL.GetError()}");
-        return false;
+
+        if (mixer == nint.Zero)
+        {
+            SDL.LogInfo(SDL.LogCategory.Application, $"MixerDevice creation failed: {SDL.GetError()}");
+            return false;
+        }
+
+        Mixer.SetMixerGain(mixer, Volume / 100);
+        return true;
+    }
+
+    public static void UpdateVolume(float newVolume)
+    {
+        Mixer.SetMixerGain(mixer, newVolume);
     }
     
-    public static void InitializePath()
+    private static bool TrySetSound(string folder)
     {
-        string baseDir = Folder.GetRandomFolder();
+        mp3Path = Directory.EnumerateFiles(folder).FirstOrDefault(IsMp3);
 
-        mp3 = Directory.GetFiles(baseDir, "*.*").FirstOrDefault(f => f.EndsWith(".mp3"))!;
+        if (mp3Path is null)
+        {
+            SDL.LogInfo(SDL.LogCategory.Application, $"MP3 file not found in the directory: {folder}");
+            Quit();
+            return false;
+        }
 
-        if (string.IsNullOrEmpty(mp3))
-        {
-            SDL.LogInfo(SDL.LogCategory.Error, "MP3 file not found in the directory : " + baseDir);
-            Mixer.DestroyMixer(mixer);
-            Mixer.Quit();
-            SDL.Quit();
-        }
-        else
-        {
-            SDL.LogInfo(SDL.LogCategory.Application, "Loaded Sound : " + mp3[mp3.LastIndexOf("Screamer", StringComparison.Ordinal)..]);
-        }
+        SDL.LogInfo(SDL.LogCategory.Application, $"Loaded sound: {mp3Path}");
+        return true;
     }
     
     public static void Initialize()
     {
-        if (!InitializeMixer())
+        if (!InitializeMixer() || !InitializeMixerDevice())
             return;
-        
-        if (!InitializeMixerDevice())
-            return;
-        
-        InitializePath();
-        audio = Mixer.LoadAudio(mixer, mp3, predecode: true);
-        if (audio == nint.Zero)
-        {
-            SDL.LogInfo(SDL.LogCategory.Error, $"Failed loading audio: {SDL.GetError()}");
-            Quit();
-            return;
-        }
-        
+
         track = Mixer.CreateTrack(mixer);
+
         if (track == nint.Zero || !Mixer.SetTrackAudio(track, audio))
         {
-            SDL.LogInfo(SDL.LogCategory.Error, $"Failed creating track: {SDL.GetError()}");
+            SDL.LogInfo(SDL.LogCategory.Application, $"Failed creating track: {SDL.GetError()}");
             Quit();
+            return;
         }
+
+        Mixer.SetTrackStoppedCallback(track, OnTrackStopped, nint.Zero);
     }
-    
+
+    private static bool LoadAudio()
+    {
+        if (!TrySetSound(Folder.GetFolder()))
+            return false;
+        
+        StopSound();
+        
+        if (mp3Path is null)
+            InitializePath();
+
+        audio = Mixer.LoadAudio(mixer, mp3Path!, predecode: true);
+
+        if (audio != nint.Zero)
+            return true;
+
+        SDL.LogInfo(SDL.LogCategory.Application, $"Failed loading audio: {SDL.GetError()}");
+        return false;
+    }
+
+    public static void Load()
+    {
+        if (!LoadAudio())
+            return;
+
+        if (track != nint.Zero)
+            Mixer.SetTrackAudio(track, audio);
+    }
+
     public static void PlaySound()
     {
+        if (audio == nint.Zero)
+            Load();
+        
         Mixer.PlayTrack(track, 0);
+    }
+    
+    public static void StopSound()
+    {
+        if (track != nint.Zero)
+            Mixer.StopTrack(track, 0);
+    }
+
+    public static void Unload()
+    {
+        SDL.LogInfo(SDL.LogCategory.Application, $"Unloaded Sound: {mp3Path}");
+        mp3Path = null;
+     
+        if (audio == nint.Zero)
+            return;
+
+        if (track != nint.Zero)
+            Mixer.SetTrackAudio(track, nint.Zero);
+
+        Mixer.DestroyAudio(audio);
+        audio = nint.Zero;
     }
 
     public static void Quit()
     {
-        if(track != nint.Zero)
-            Mixer.DestroyTrack(track);
-        if(audio != nint.Zero)
-            Mixer.DestroyAudio(audio);
-        if(mixer != nint.Zero)
-            Mixer.DestroyMixer(mixer);
+        Unload();
 
-        if (!string.IsNullOrEmpty(mp3))
+        if (track != nint.Zero)
         {
-            SDL.LogInfo(SDL.LogCategory.Application, "Unloading Sound : " + mp3);
-            mp3 = "";
+            Mixer.DestroyTrack(track);
+            track = nint.Zero;
         }
-    
-        Mixer.Quit();
+
+        if (mixer != nint.Zero)
+        {
+            Mixer.DestroyMixer(mixer);
+            mixer = nint.Zero;
+            Mixer.Quit();
+        }
+
+        if (mp3Path is not null)
+        {
+            SDL.LogInfo(SDL.LogCategory.Application, $"Unloading sound: {Path.GetFileName(mp3Path)}");
+            mp3Path = null;
+        }
     }
 }

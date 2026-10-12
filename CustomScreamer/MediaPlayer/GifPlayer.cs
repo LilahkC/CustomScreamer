@@ -16,7 +16,7 @@ public class GifPlayer
         if (!string.IsNullOrEmpty(gifPath))
             return;
         
-        SDL.LogInfo(SDL.LogCategory.Error, ".gif file not found in the directory : " + baseDir);
+        SDL.LogInfo(SDL.LogCategory.Application, ".gif file not found in the directory : " + baseDir);
     }
 
     public void Initialize()

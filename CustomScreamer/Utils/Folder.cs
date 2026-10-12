@@ -4,33 +4,34 @@ namespace CustomScreamer.Utils;
 
 public static class Folder
 {
-    private static string BaseDir = Path.Combine(AppDomain.CurrentDomain.BaseDirectory, "ListOfScreamers", "Screamer");
-    private static Random random = new Random();
-    public static string RandomFolder;
+    private static string baseFolder = Path.Combine(AppDomain.CurrentDomain.BaseDirectory, "ListOfScreamers", "Screamer");
+    private static readonly Random Random = new Random();
+    private static string randomFolder;
+    private static string userFolder;
     
     public static void SetRandomFolder()
     {
-        string[] directories = Directory.GetDirectories(BaseDir);
+        string[] directories = Directory.GetDirectories(userFolder);
         int directoriesNumber = directories.Length;
         
-        RandomFolder = directoriesNumber > 0 ? directories[random.Next(directoriesNumber)] : BaseDir;
-        
-        ImagePlayer.Initialize();
-        SoundPlayer.Initialize();
+        randomFolder = directoriesNumber > 0 ? directories[Random.Next(directoriesNumber)] : baseFolder;
     }
 
-    public static void SetFolder(string folder)
+    public static string GetUserFolder()
     {
-        BaseDir = folder;
+        return userFolder;
     }
     
-    public static string GetBaseDir()
+    public static void SetUserFolder(string folder)
     {
-        return BaseDir;
+        userFolder = folder;
     }
 
-    public static string GetRandomFolder()
+    public static string GetFolder()
     {
-        return RandomFolder;
+        if (string.IsNullOrEmpty(userFolder))
+            SetRandomFolder();
+        
+        return string.IsNullOrEmpty(randomFolder) ? baseFolder : randomFolder;
     }
 }

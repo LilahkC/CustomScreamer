@@ -17,15 +17,23 @@ public static class Game
     
     public static void Initialize()
     {
-        Folder.SetRandomFolder();
+        SoundPlayer.Initialize();
         ScheduleNextRoll();
     }
     
     private static void PlayScreamer()
     {
         Folder.SetRandomFolder();
+        
+        SoundPlayer.Load();
         SoundPlayer.PlaySound();
+        
+        ImagePlayer.Load();
         ImagePlayer.ShowImage();
+        
+        SDL.LogInfo(SDL.LogCategory.Application, "Screamer is screaming");
+        ImagePlayer.Unload();
+        
         //gifPlayer.ShowGif();
     }
     
@@ -35,10 +43,7 @@ public static class Game
             return;
 
         if (Random.Shared.NextSingle() < Chance / 100f)
-        {
             PlayScreamer();
-            SDL.LogInfo(SDL.LogCategory.Application, "Screamer is screaming");
-        }
 
         ScheduleNextRoll();
     }

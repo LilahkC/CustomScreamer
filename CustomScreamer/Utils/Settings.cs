@@ -1,4 +1,5 @@
 ﻿using System.Text.Json;
+using CustomScreamer.MediaPlayer;
 using SDL3;
 
 namespace CustomScreamer.Utils;
@@ -14,6 +15,7 @@ public static class Settings
     {
         public float Chance { get; init; } = 0.25f;
         public float Time { get; init; } = 1f;
+        public float Volume { get; init; } = 50f;
         public bool OpenSettingsOnLaunch { get; init; } = true;
         public string LastScreamerFolder { get; init; }
     }
@@ -29,8 +31,11 @@ public static class Settings
         
         Game.Game.Chance = data.Chance;
         Game.Game.Time = data.Time;
+        SoundPlayer.Volume = data.Volume;
         Game.Game.OpenSettingsOnLaunch = data.OpenSettingsOnLaunch;
-        Folder.SetFolder(data.LastScreamerFolder);
+        
+        if(data.LastScreamerFolder != null)
+            Folder.SetUserFolder(data.LastScreamerFolder);
             
         SDL.LogInfo(SDL.LogCategory.Application, "Loaded Settings");
     }
@@ -43,8 +48,9 @@ public static class Settings
         {
             Chance = Game.Game.Chance,
             Time = Game.Game.Time,
+            Volume = SoundPlayer.Volume,
             OpenSettingsOnLaunch = Game.Game.OpenSettingsOnLaunch,
-            LastScreamerFolder = Folder.GetBaseDir()
+            LastScreamerFolder = Folder.GetUserFolder()
         };
         
         File.WriteAllText(FilePath, JsonSerializer.Serialize(data));
