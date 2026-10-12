@@ -57,4 +57,9 @@ public static class Settings
         
         SDL.LogInfo(SDL.LogCategory.Application, "Saved Settings");
     }
+
+    public static void DeleteSave()
+    {
+        Directory.Delete(Path.GetDirectoryName(FilePath)!);
+    }
 }

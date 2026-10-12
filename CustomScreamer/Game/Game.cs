@@ -21,7 +21,7 @@ public static class Game
         ScheduleNextRoll();
     }
     
-    private static void PlayScreamer()
+    public static void PlayScreamer(bool destroyWindowAfter)
     {
         Folder.SetRandomFolder();
         
@@ -34,6 +34,9 @@ public static class Game
         SDL.LogInfo(SDL.LogCategory.Application, "Screamer is screaming");
         ImagePlayer.Unload();
         
+        if(destroyWindowAfter)
+            Window.DestroyMainWindow();
+        
         //gifPlayer.ShowGif();
     }
     
@@ -43,7 +46,7 @@ public static class Game
             return;
 
         if (Random.Shared.NextSingle() < Chance / 100f)
-            PlayScreamer();
+            PlayScreamer(false);
 
         ScheduleNextRoll();
     }

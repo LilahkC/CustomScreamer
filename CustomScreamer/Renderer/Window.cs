@@ -1,7 +1,11 @@
-﻿using CustomScreamer.Utils;
+﻿using System.Numerics;
+using System.Runtime.InteropServices;
+using CustomScreamer.Utils;
 using ImGuiNET;
+using SDL3;
 using SDL3ImGui;
 using static SDL3.SDL;
+using Folder = CustomScreamer.Utils.Folder;
 
 namespace CustomScreamer.Renderer
 {
@@ -44,7 +48,7 @@ namespace CustomScreamer.Renderer
             if (Game.Game.OpenSettingsOnLaunch)
                 CreateSettingsWindow();
             else
-                CreateGameWindow();
+                CreateGameWindow(false);
         }
         
         public void Update()
@@ -61,7 +65,7 @@ namespace CustomScreamer.Renderer
                 return;
             
             StartGame = false;
-            CreateGameWindow();
+            CreateGameWindow(false);
         }
         
         public void Destroy()
@@ -86,6 +90,15 @@ namespace CustomScreamer.Renderer
 
                 switch ((EventType)e.Type)
                 {
+                    case EventType.DropFile:
+                        if (!InGame)
+                        {
+                            string path = Marshal.PtrToStringUTF8(e.Drop.Data);
+                            if (!string.IsNullOrEmpty(path))
+                                ImGUIInterface.OnPathDropped(path);
+                        }
+                        break;
+                    
                     case EventType.Quit:
                     case EventType.WindowCloseRequested:
                         LogInfo(LogCategory.Application, "User closed window");
@@ -151,10 +164,13 @@ namespace CustomScreamer.Renderer
             DestroyTray(trayMenu.Tray);
         }
         
-        public static void CreateGameWindow()
+        public static void CreateGameWindow(bool test)
         {
-            InGame = true;
-            DestroySettingsWindow();
+            if (!test)
+            {
+                InGame = true;
+                DestroySettingsWindow();
+            }
             
             const WindowFlags Flags = WindowFlags.Borderless | WindowFlags.AlwaysOnTop | WindowFlags.Hidden;
             SDLWindowHandle = CreateWindow("CustomScreamer", displayBounds.W, displayBounds.H, Flags);
@@ -180,7 +196,8 @@ namespace CustomScreamer.Renderer
             SetWindowFullscreenMode(SDLWindowHandle, nint.Zero);
             SetWindowFullscreen(SDLWindowHandle, true);
             
-            trayMenu.CreateTray();
+            if(!test)
+                trayMenu.CreateTray();
             
             Game.Game.Initialize();
         }
@@ -208,7 +225,7 @@ namespace CustomScreamer.Renderer
             return true;
         }
 
-        private static void DestroyMainWindow()
+        public static void DestroyMainWindow()
         {
             if (SDLWindowHandle != nint.Zero)
             {

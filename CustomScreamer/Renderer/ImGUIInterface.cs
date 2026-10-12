@@ -1,4 +1,6 @@
-﻿using CustomScreamer.MediaPlayer;
+﻿using System.Numerics;
+using System.Runtime.InteropServices;
+using CustomScreamer.MediaPlayer;
 using CustomScreamer.Utils;
 using NativeFileDialogSharp;
 using SDL3ImGui;
@@ -9,12 +11,16 @@ using SDL3;
 
 public class ImGUIInterface
 {
+    private static double confirmationHideTime;
+    private static DialogResult dialogResult;
+    private static string confirmationText = "";
+    
     public static void BuildImGUIInterface(ImGuiSDL3 platform, ImGuiSDL3Renderer imGuiRenderer)
     {
         platform.NewFrame();
         imGuiRenderer.NewFrame();
         ImGui.NewFrame();
-            
+        
         ImGuiViewportPtr viewport = ImGui.GetMainViewport();
         ImGui.SetNextWindowPos(viewport.WorkPos);
         ImGui.SetNextWindowSize(viewport.WorkSize);
@@ -29,6 +35,14 @@ public class ImGUIInterface
                 Settings.Save();
                 Window.StartGame = true;
             }
+            
+            if (ImGui.Button("Test"))
+            {
+                Window.CreateGameWindow(true);
+                Game.Game.PlayScreamer(true);
+            }
+            
+            ImGui.NewLine();
             
             const ImGuiInputTextFlags NumberOnly = ImGuiInputTextFlags.CharsDecimal;
                 
@@ -52,6 +66,8 @@ public class ImGUIInterface
             ImGui.SetNextItemWidth(90f);
             if (ImGui.SliderFloat("##Volume", ref SoundPlayer.Volume, 0.1f, 100f, "%.0f%"))
                 SoundPlayer.UpdateVolume(SoundPlayer.Volume / 100);
+            
+            ImGui.NewLine();
 
             ImGui.Checkbox("Open Settings On Launch", ref Game.Game.OpenSettingsOnLaunch);
             
@@ -61,11 +77,36 @@ public class ImGUIInterface
 
             if (ImGui.Button("Choose Screamer folder"))
             {
-                DialogResult dialogResult = Dialog.FolderPicker(AppDomain.CurrentDomain.BaseDirectory);
-                if(dialogResult.IsOk)
+                string userFolder = Folder.GetUserFolder();
+                dialogResult = Dialog.FolderPicker(string.IsNullOrEmpty(userFolder) ? AppDomain.CurrentDomain.BaseDirectory : userFolder);
+
+                if (dialogResult.IsOk)
+                {
                     Folder.SetUserFolder(dialogResult.Path);
+                    ShowConfirmation($"{dialogResult.Path} successfully selected");
+                }
             }
-                
+            
+            if (ImGui.GetTime() < confirmationHideTime)
+            {
+                ImGui.PushStyleColor(ImGuiCol.Text, (Vector4)new(0.133f, 0.941f, 0.239f, 1f));
+                ImGui.TextWrapped(confirmationText);
+                ImGui.PopStyleColor();
+            }
+            
+            ImGui.NewLine();
+            
+            if (ImGui.Button("Save Config"))
+                Settings.Save();
+            
+            if (ImGui.Button("Load Config"))
+                Settings.Load();
+
+            if (ImGui.Button("Delete Save"))
+                Settings.DeleteSave();
+
+            ImGui.NewLine();
+            
             //if (ImGui.Button("Connect"));
 
             if (ImGui.Button("Quit"))
@@ -77,5 +118,20 @@ public class ImGUIInterface
             
         ImGui.End();
         ImGui.EndFrame();
+    }
+    
+    public static void OnPathDropped(string path)
+    {
+        if (!Directory.Exists(path))
+            return;
+
+        Folder.SetUserFolder(path);
+        ShowConfirmation($"{path} successfully selected");
+    }
+
+    private static void ShowConfirmation(string text)
+    {
+        confirmationText = new DirectoryInfo(text).Name;
+        confirmationHideTime = ImGui.GetTime() + 2.0;
     }
 }
