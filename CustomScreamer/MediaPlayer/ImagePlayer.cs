@@ -53,8 +53,11 @@ public static class ImagePlayer
 
     public static void Unload()
     {
-        SDL.LogInfo(SDL.LogCategory.Application, $"Unloaded Image: {imagePath}");
-        imagePath = null;
+        if(imagePath is not null)
+        {
+            SDL.LogInfo(SDL.LogCategory.Application, $"Unloaded Image: {imagePath}");
+            imagePath = null;
+        }
 
         if (Window.Texture == nint.Zero)
             return;

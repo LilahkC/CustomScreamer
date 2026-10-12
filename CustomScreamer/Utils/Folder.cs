@@ -11,7 +11,7 @@ public static class Folder
     
     public static void SetRandomFolder()
     {
-        string[] directories = Directory.GetDirectories(userFolder);
+        string[] directories = Directory.GetDirectories(string.IsNullOrEmpty(userFolder) ? baseFolder : userFolder);
         int directoriesNumber = directories.Length;
         
         randomFolder = directoriesNumber > 0 ? directories[Random.Next(directoriesNumber)] : baseFolder;
@@ -29,9 +29,6 @@ public static class Folder
 
     public static string GetFolder()
     {
-        if (string.IsNullOrEmpty(userFolder))
-            SetRandomFolder();
-        
-        return string.IsNullOrEmpty(randomFolder) ? baseFolder : randomFolder;
+        return string.IsNullOrEmpty(randomFolder) ? string.IsNullOrEmpty(userFolder) ? baseFolder : userFolder : randomFolder;
     }
 }

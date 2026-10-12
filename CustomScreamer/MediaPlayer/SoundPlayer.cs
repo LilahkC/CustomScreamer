@@ -120,8 +120,11 @@ public static class SoundPlayer
 
     public static void Unload()
     {
-        SDL.LogInfo(SDL.LogCategory.Application, $"Unloaded Sound: {mp3Path}");
-        mp3Path = null;
+        if (mp3Path is not null)
+        {
+            SDL.LogInfo(SDL.LogCategory.Application, $"Unloaded Sound: {mp3Path}");
+            mp3Path = null;
+        }
      
         if (audio == nint.Zero)
             return;
