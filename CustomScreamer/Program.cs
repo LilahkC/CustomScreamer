@@ -1,4 +1,5 @@
 ﻿using CustomScreamer.Renderer;
+using CustomScreamer.Utils;
 using SDL3;
 namespace CustomScreamer;
 
@@ -29,5 +30,6 @@ internal static class Program
     private static void Quit()
     {
         Window.Destroy();
+        Twitch.Quit();
     }
 }

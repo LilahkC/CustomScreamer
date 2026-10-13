@@ -27,9 +27,33 @@ public static class Folder
         userFolder = folder;
     }
     
-    public static string[] GetSubRepositories()
+    public static string[] GetSubDirectories()
     {
-        return Directory.GetDirectories(string.IsNullOrEmpty(userFolder) ? BaseFolder : userFolder);
+        string[] subDirectories;
+        string folder = GetFolder();
+
+        if (Directory.GetDirectories(folder).Length > 0)
+        {
+            subDirectories = Directory.GetDirectories(folder);
+        }
+        else
+        {
+            subDirectories = new string[1];
+            subDirectories[0] = BaseFolder;
+        }
+        
+        for(int i = 0; i < subDirectories.Length; i++)
+            subDirectories[i] = new DirectoryInfo(subDirectories[i]).Name;
+        
+        return subDirectories;
+    }
+    
+    public static string GetSubDirectoriesText()
+    {
+        string[] subDirectories = GetSubDirectories();
+        string subDirectoriesText = string.Join(", !", subDirectories);
+        
+        return subDirectoriesText;
     }
 
     public static string GetFolder()

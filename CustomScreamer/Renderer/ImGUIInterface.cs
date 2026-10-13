@@ -110,10 +110,21 @@ public class ImGUIInterface
 
             if (ImGui.Button("Connect"))
             {
-                if(string.IsNullOrEmpty(Twitch.ChannelName) || string.IsNullOrEmpty(Twitch.TwitchOAuth))
-                    ShowTwitchConfirmation("Please enter your Twitch Channel Name and OAuth", Red);
+                if (string.IsNullOrEmpty(Twitch.ChannelName))
+                    ShowTwitchConfirmation("Please enter your Twitch Channel Name", Red);
                 else
                     Twitch.Initialize();
+            }
+            
+            if (ImGui.Button("Refresh"))
+            {
+                Twitch.Refresh();
+            }
+            
+            if (ImGui.Button("Disconnect"))
+            {
+                Twitch.Disconnect();
+                ShowTwitchConfirmation("Twitch Disconnected", Red);
             }
             
             if (ImGui.GetTime() < ConfirmationHideTime)
