@@ -26,6 +26,11 @@ public static class Folder
     {
         userFolder = folder;
     }
+    
+    public static string[] GetSubRepositories()
+    {
+        return Directory.GetDirectories(string.IsNullOrEmpty(userFolder) ? BaseFolder : userFolder);
+    }
 
     public static string GetFolder()
     {

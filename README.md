@@ -1,6 +1,8 @@
 # CustomScreamer
 
 ## TODO
-- Add gifs
-- Twitch integration
-- Update how an image is displayed
+
+* Add gifs
+* Twitch integration (WIP)
+* Update how an image is displayed
+

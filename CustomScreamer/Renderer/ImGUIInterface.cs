@@ -1,5 +1,4 @@
 ﻿using System.Numerics;
-using System.Runtime.InteropServices;
 using CustomScreamer.MediaPlayer;
 using CustomScreamer.Utils;
 using NativeFileDialogSharp;
@@ -13,7 +12,13 @@ public class ImGUIInterface
 {
     private static double ConfirmationHideTime => ImGui.GetTime() + 2.0;
     private static string confirmationText = "";
+    private static string twitchConfirmationText = "";
+    private static Vector4 twitchConfirmationColor = new(1.0f, 1.0f, 1.0f, 1.0f);
     
+    public static Vector4 Green => new(0.133f, 0.941f, 0.239f, 1f);
+    public static Vector4 Orange => new(0.941f, 0.549f, 0.133f, 1f);
+    public static Vector4 Red => new(0.941f, 0.133f, 0.239f, 1f);
+
     public static void BuildImGUIInterface(ImGuiSDL3 platform, ImGuiSDL3Renderer imGuiRenderer)
     {
         platform.NewFrame();
@@ -28,6 +33,8 @@ public class ImGUIInterface
             
         if (ImGui.Begin("ImGUI", Flags))
         {
+            /* PLAY/TEST */
+            
             if (ImGui.Button("Play"))
             {
                 SDL.LogInfo(SDL.LogCategory.Application, "User pressed 'Play' in Settings Window");
@@ -35,11 +42,13 @@ public class ImGUIInterface
                 Window.StartGame = true;
             }
             
-            if (ImGui.Button("Test"))
+            if (ImGui.Button("Test Screamer"))
             {
                 Window.CreateGameWindow(true);
                 Game.Game.PlayScreamer(true);
             }
+            
+            /* SCREAMER PARAMETERS */
             
             ImGui.NewLine();
             
@@ -66,6 +75,8 @@ public class ImGUIInterface
             if (ImGui.SliderFloat("##Volume", ref SoundPlayer.Volume, 0.1f, 100f, "%.0f%"))
                 SoundPlayer.UpdateVolume(SoundPlayer.Volume / 100);
             
+            /* APP PARAMETERS */
+            
             ImGui.NewLine();
 
             ImGui.Checkbox("Open Settings On Launch", ref Game.Game.OpenSettingsOnLaunch);
@@ -88,25 +99,33 @@ public class ImGUIInterface
             
             if (ImGui.GetTime() < ConfirmationHideTime)
             {
-                ImGui.PushStyleColor(ImGuiCol.Text, (Vector4)new(0.133f, 0.941f, 0.239f, 1f));
+                ImGui.PushStyleColor(ImGuiCol.Text, Green);
                 ImGui.TextWrapped(confirmationText);
                 ImGui.PopStyleColor();
             }
             
-            ImGui.NewLine();
-            
-            if (ImGui.Button("Save Config"))
-                Settings.Save();
-            
-            if (ImGui.Button("Load Config"))
-                Settings.Load();
-
-            if (ImGui.Button("Delete Save"))
-                Settings.DeleteSave();
+            /* TWITCH */
 
             ImGui.NewLine();
+
+            if (ImGui.Button("Connect"))
+            {
+                if(string.IsNullOrEmpty(Twitch.ChannelName) || string.IsNullOrEmpty(Twitch.TwitchOAuth))
+                    ShowTwitchConfirmation("Please enter your Twitch Channel Name and OAuth", Red);
+                else
+                    Twitch.Initialize();
+            }
             
-            //if (ImGui.Button("Connect"));
+            if (ImGui.GetTime() < ConfirmationHideTime)
+            {
+                ImGui.PushStyleColor(ImGuiCol.Text, twitchConfirmationColor);
+                ImGui.TextWrapped(twitchConfirmationText);
+                ImGui.PopStyleColor();
+            }
+            
+            /* QUIT */
+            
+            ImGui.NewLine();
 
             if (ImGui.Button("Quit"))
             {
@@ -131,5 +150,11 @@ public class ImGUIInterface
     private static void ShowConfirmation(string text)
     {
         confirmationText = new DirectoryInfo(text).Name;
+    }
+    
+    public static void ShowTwitchConfirmation(string text, Vector4 color)
+    {
+        twitchConfirmationColor = color;
+        twitchConfirmationText = text;
     }
 }
