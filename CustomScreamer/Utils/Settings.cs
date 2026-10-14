@@ -18,6 +18,7 @@ public static class Settings
         public float Volume { get; init; } = 50f;
         public bool OpenSettingsOnLaunch { get; init; } = true;
         public string LastScreamerFolder { get; init; }
+        public string TwitchChannel { get; init; }
     }
     
     public static void Load()
@@ -33,8 +34,9 @@ public static class Settings
         Game.Game.Time = data.Time;
         SoundPlayer.Volume = data.Volume;
         Game.Game.OpenSettingsOnLaunch = data.OpenSettingsOnLaunch;
+        Twitch.ChannelName = data.TwitchChannel;
         
-        if(data.LastScreamerFolder != null)
+        if(!string.IsNullOrEmpty(data.LastScreamerFolder))
             Folder.SetUserFolder(data.LastScreamerFolder);
             
         SDL.LogInfo(SDL.LogCategory.Application, "Loaded Settings");
@@ -50,7 +52,8 @@ public static class Settings
             Time = Game.Game.Time,
             Volume = SoundPlayer.Volume,
             OpenSettingsOnLaunch = Game.Game.OpenSettingsOnLaunch,
-            LastScreamerFolder = Folder.GetUserFolder()
+            LastScreamerFolder = Folder.GetUserFolder(),
+            TwitchChannel = Twitch.ChannelName
         };
         
         File.WriteAllText(FilePath, JsonSerializer.Serialize(data));

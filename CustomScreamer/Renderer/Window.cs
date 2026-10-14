@@ -68,7 +68,7 @@ namespace CustomScreamer.Renderer
             CreateGameWindow(false);
         }
         
-        public void Destroy()
+        public static void Destroy()
         {
             DestroyTray(trayMenu.Tray);
             
@@ -228,10 +228,7 @@ namespace CustomScreamer.Renderer
         public static void DestroyMainWindow()
         {
             if (SDLWindowHandle != nint.Zero)
-            {
-                Settings.Save();
-                LogInfo(LogCategory.Application,"Destroyed Game Window and Saved Settings");
-            }
+                LogInfo(LogCategory.Application,"Destroyed Game Window");
             
             if (SDLRenderer != nint.Zero)
             {

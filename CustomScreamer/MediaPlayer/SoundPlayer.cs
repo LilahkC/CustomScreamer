@@ -5,7 +5,7 @@ namespace CustomScreamer.MediaPlayer;
 
 public static class SoundPlayer
 {
-    public static float Volume;
+    public static float Volume = 50f;
     
     private static string mp3Path;
     private static nint mixer;

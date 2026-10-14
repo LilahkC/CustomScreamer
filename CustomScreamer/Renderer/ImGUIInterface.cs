@@ -10,15 +10,17 @@ using SDL3;
 
 public class ImGUIInterface
 {
-    private static double ConfirmationHideTime => ImGui.GetTime() + 2.0;
-    private static string confirmationText = "";
-    private static string twitchConfirmationText = "";
-    private static Vector4 twitchConfirmationColor = new(1.0f, 1.0f, 1.0f, 1.0f);
+    public enum Section { Application, Twitch }
     
-    public static Vector4 Green => new(0.133f, 0.941f, 0.239f, 1f);
-    public static Vector4 Orange => new(0.941f, 0.549f, 0.133f, 1f);
-    public static Vector4 Red => new(0.941f, 0.133f, 0.239f, 1f);
+    private struct Confirmation
+    {
+        public string Text;
+        public Vector4 Color;
+        public double HideTime;
+    }
 
+    private static readonly Dictionary<Section, Confirmation> confirmations = new();
+    
     public static void BuildImGUIInterface(ImGuiSDL3 platform, ImGuiSDL3Renderer imGuiRenderer)
     {
         platform.NewFrame();
@@ -30,6 +32,7 @@ public class ImGUIInterface
         ImGui.SetNextWindowSize(viewport.WorkSize);
 
         const ImGuiWindowFlags Flags = ImGuiWindowFlags.NoDecoration | ImGuiWindowFlags.NoMove;
+        const ImGuiTreeNodeFlags CategoryFlags = ImGuiTreeNodeFlags.DefaultOpen;
             
         if (ImGui.Begin("ImGUI", Flags))
         {
@@ -48,12 +51,10 @@ public class ImGUIInterface
                 Game.Game.PlayScreamer(true);
             }
             
-            /* SCREAMER PARAMETERS */
-            
             ImGui.NewLine();
-            
+
             const ImGuiInputTextFlags NumberOnly = ImGuiInputTextFlags.CharsDecimal;
-                
+
             ImGui.AlignTextToFramePadding();
             ImGui.Text("Chance");
             ImGui.SameLine(55f);
@@ -67,20 +68,18 @@ public class ImGUIInterface
             ImGui.SetNextItemWidth(135f);
             if (ImGui.InputFloat("##Time", ref Game.Game.Time, 0.1f, 1f, "%.1f seconds", NumberOnly))
                 Game.Game.Time = MathF.Max(Game.Game.Time, 0.01f);
-            
+
             ImGui.AlignTextToFramePadding();
             ImGui.Text("Volume");
             ImGui.SameLine(60f);
             ImGui.SetNextItemWidth(90f);
             if (ImGui.SliderFloat("##Volume", ref SoundPlayer.Volume, 0.1f, 100f, "%.0f%"))
                 SoundPlayer.UpdateVolume(SoundPlayer.Volume / 100);
-            
-            /* APP PARAMETERS */
-            
-            ImGui.NewLine();
 
+            ImGui.NewLine();
+                
             ImGui.Checkbox("Open Settings On Launch", ref Game.Game.OpenSettingsOnLaunch);
-            
+
             bool launchAtBoot = LaunchOnBoot.IsOpenOnBootEnabled();
             if (ImGui.Checkbox("Launch at boot", ref launchAtBoot))
                 LaunchOnBoot.SetStartup(launchAtBoot);
@@ -93,47 +92,49 @@ public class ImGUIInterface
                 if (dialogResult.IsOk)
                 {
                     Folder.SetUserFolder(dialogResult.Path);
-                    ShowConfirmation($"{dialogResult.Path} successfully selected");
+                    ShowConfirmation(Section.Application, $"{new DirectoryInfo(dialogResult.Path).Name} successfully selected", Color.Green);
+                    
+                    if(Twitch.IsConnected())
+                        ShowConfirmation(Section.Twitch, $"The chat will be able to use !{Folder.GetSubDirectoriesText()} to play a screamer", Color.Green, 10);
                 }
-            }
-            
-            if (ImGui.GetTime() < ConfirmationHideTime)
-            {
-                ImGui.PushStyleColor(ImGuiCol.Text, Green);
-                ImGui.TextWrapped(confirmationText);
-                ImGui.PopStyleColor();
-            }
-            
-            /* TWITCH */
 
+                DrawConfirmation(Section.Application);
+            }
+            
             ImGui.NewLine();
 
-            if (ImGui.Button("Connect"))
+            /* TWITCH */
+
+            ImGui.SetNextItemWidth(100f);
+            string channelName = Twitch.ChannelName ?? "";
+            if (ImGui.InputTextWithHint("##TwitchChannel", "Channel Name", ref channelName, 24, ImGuiInputTextFlags.EnterReturnsTrue))
+                Twitch.ChannelName = channelName;
+            
+            bool connected = Twitch.IsConnected();
+            
+            ImGui.BeginDisabled(connected);
+            if (ImGui.Button("Connect to Twitch"))
             {
                 if (string.IsNullOrEmpty(Twitch.ChannelName))
-                    ShowTwitchConfirmation("Please enter your Twitch Channel Name", Red);
+                    ShowConfirmation(Section.Twitch, "Please enter your Twitch Channel Name", Color.Red);
                 else
                     Twitch.Initialize();
             }
-            
-            if (ImGui.Button("Refresh"))
-            {
-                Twitch.Refresh();
-            }
-            
-            if (ImGui.Button("Disconnect"))
+
+            ImGui.EndDisabled();
+
+            ImGui.BeginDisabled(!connected);
+
+            if (ImGui.Button("Disconnect from Twitch"))
             {
                 Twitch.Disconnect();
-                ShowTwitchConfirmation("Twitch Disconnected", Red);
+                ShowConfirmation(Section.Twitch,"Twitch Disconnected", Color.Red);
             }
-            
-            if (ImGui.GetTime() < ConfirmationHideTime)
-            {
-                ImGui.PushStyleColor(ImGuiCol.Text, twitchConfirmationColor);
-                ImGui.TextWrapped(twitchConfirmationText);
-                ImGui.PopStyleColor();
-            }
-            
+
+            ImGui.EndDisabled();
+
+            DrawConfirmation(Section.Twitch);
+
             /* QUIT */
             
             ImGui.NewLine();
@@ -155,17 +156,29 @@ public class ImGUIInterface
             return;
 
         Folder.SetUserFolder(path);
-        ShowConfirmation($"{path} successfully selected");
+        ShowConfirmation(Section.Application,$"{new DirectoryInfo(path).Name} successfully selected", Color.Green);
+
+        if(Twitch.IsConnected())
+            ShowConfirmation(Section.Twitch, $"The chat will be able to use !{Folder.GetSubDirectoriesText()} to play a screamer", Color.Green, 10);
     }
 
-    private static void ShowConfirmation(string text)
+    public static void ShowConfirmation(Section section, string text, Vector4 color, double duration = 2)
     {
-        confirmationText = new DirectoryInfo(text).Name;
+        confirmations[section] = new()
+        {
+            Text = text,
+            Color = color,
+            HideTime = ImGui.GetTime() + duration
+        };
     }
-    
-    public static void ShowTwitchConfirmation(string text, Vector4 color)
+
+    private static void DrawConfirmation(Section section)
     {
-        twitchConfirmationColor = color;
-        twitchConfirmationText = text;
+        if (!confirmations.TryGetValue(section, out Confirmation c) || ImGui.GetTime() >= c.HideTime)
+            return;
+
+        ImGui.PushStyleColor(ImGuiCol.Text, c.Color);
+        ImGui.TextWrapped(c.Text);
+        ImGui.PopStyleColor();
     }
 }

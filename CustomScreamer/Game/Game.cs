@@ -53,8 +53,11 @@ public static class Game
     
     public static void Quit()
     {
+        Settings.Save();
         SoundPlayer.Quit();
         ImagePlayer.Quit();
+        Twitch.Quit();
+        Window.Destroy();
         //gifPlayer.Quit();
     }
 }

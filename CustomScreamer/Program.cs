@@ -29,7 +29,6 @@ internal static class Program
     
     private static void Quit()
     {
-        Window.Destroy();
-        Twitch.Quit();
+        Game.Game.Quit();
     }
 }

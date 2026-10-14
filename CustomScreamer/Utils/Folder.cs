@@ -19,7 +19,7 @@ public static class Folder
 
     public static string GetUserFolder()
     {
-        return userFolder;
+        return string.IsNullOrEmpty(userFolder) ? BaseFolder : userFolder;
     }
     
     public static void SetUserFolder(string folder)
@@ -30,7 +30,7 @@ public static class Folder
     public static string[] GetSubDirectories()
     {
         string[] subDirectories;
-        string folder = GetFolder();
+        string folder = GetUserFolder();
 
         if (Directory.GetDirectories(folder).Length > 0)
         {
@@ -39,11 +39,11 @@ public static class Folder
         else
         {
             subDirectories = new string[1];
-            subDirectories[0] = BaseFolder;
+            subDirectories[0] = folder;
         }
         
         for(int i = 0; i < subDirectories.Length; i++)
-            subDirectories[i] = new DirectoryInfo(subDirectories[i]).Name;
+            subDirectories[i] = new DirectoryInfo(subDirectories[i]).Name.ToLower();
         
         return subDirectories;
     }
